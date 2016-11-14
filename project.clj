@@ -12,4 +12,15 @@
                  [sablono "0.7.5"]
                  [cljs-http "0.1.42" :exclusions
                   [org.clojure/clojure org.clojure/clojurescript
-                   com.cognitect/transit-cljs]]])
+                   com.cognitect/transit-cljs]]]
+
+  :plugins [[lein-cljsbuild "1.1.1"]
+            [lein-environ "1.0.1"]]
+
+  :min-lein-version "2.6.1"
+
+  :source-paths ["src/clj" "src/cljs"]
+
+  :test-paths ["test/clj"]
+
+)

@@ -7,7 +7,7 @@
   :all-builds
   [{:id "dev"
     :figwheel true
-    :source-paths ["src"]
+    :source-paths ["src/cljs"]
     :compiler {:main 'om-next-leaflet.core
                :asset-path "js"
                :output-to "resources/public/js/main.js"

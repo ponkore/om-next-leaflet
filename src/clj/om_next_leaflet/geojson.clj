@@ -4,7 +4,7 @@
 (def ^{:private true}
   json-root-dir
   "GeoJSON の配置しているディレクトリ"
-  "src/om_next_leaflet/")
+  "src/clj/om_next_leaflet/")
 
 (def ^{:private true}
   earth-r
