@@ -2,7 +2,7 @@
   (:require [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.reload :refer [wrap-reload]]
-            [om-next-leaflet.middleware :refer [wrap-transit-response wrap-transit-params]]
+            [ring.middleware.transit :refer [wrap-transit-response wrap-transit-params]]
             [om-next-leaflet.parser :as parser]
             [om.next.server :as om]
             [bidi.bidi :as bidi]))
