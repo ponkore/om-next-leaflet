@@ -1,8 +1,10 @@
 (ns om-next-leaflet.server
-  (:require [ring.middleware.resource :refer [wrap-resource]]
+  (:require [com.stuartsierra.component :as component]
+            [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.transit :refer [wrap-transit-response wrap-transit-params]]
+            [ring.component.jetty :refer [jetty-server]]
             [om-next-leaflet.parser :as parser]
             [om.next.server :as om]
             [bidi.bidi :as bidi]))
@@ -43,3 +45,8 @@
       wrap-reload
       wrap-transit-response
       wrap-transit-params))
+
+(defn create-system
+  [{:keys [port] :as config-options}]
+  (component/system-map
+   :http-server (jetty-server {:app app :port port})))
