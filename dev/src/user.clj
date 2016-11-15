@@ -26,16 +26,5 @@
   (refresh :after 'user/go))
 
 (defn browser-repl []
-  (ra/start-figwheel!
-   {:figwheel-options {:ring-handler 'om-next-leaflet.server/app}
-    :build-ids ["dev"]
-    :all-builds
-    [{:id "dev"
-      :figwheel true
-      :source-paths ["src/cljs"]
-      :compiler {:main 'om-next-leaflet.core
-                 :asset-path "js"
-                 :output-to "resources/public/js/main.js"
-                 :output-dir "resources/public/js"
-                 :verbose true}}]})
+  (ra/start-figwheel!)
   (ra/cljs-repl))

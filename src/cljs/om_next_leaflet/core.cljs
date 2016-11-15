@@ -126,8 +126,12 @@
       (:app/stations {:line-id ?line-id})
       ])
   Object
+  (componentWillMount [this]
+    (.log js/console "will-mount"))
   (componentDidMount [this]
-    (.log js/console "mount"))
+    (.log js/console "did-mount"))
+  (componentWillUnmount [this]
+    (.log js/console "will-unmount"))
   (render [this]
     (let [{:keys [app/title loading?
                   app/mapstate
