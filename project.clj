@@ -1,4 +1,4 @@
-(defproject om-starter "0.1.0-SNAPSHOT"
+(defproject om-next-leaflet "0.1.0-SNAPSHOT"
   :description "My first Om program!"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.293"]
@@ -15,32 +15,21 @@
                  [cljs-http "0.1.42" :exclusions
                   [org.clojure/clojure org.clojure/clojurescript
                    com.cognitect/transit-cljs]]]
-
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.1"]]
-
   :min-lein-version "2.6.1"
-
   :source-paths ["src/clj" "src/cljc" "dev/src/clj"]
-
   :test-paths ["test/clj"]
-
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
-
   :uberjar-name "om-next-leaflet.jar"
-
   :main om-next-leaflet.server
-
   :repl-options {:init-ns user}
-
   :cljsbuild {:builds
               {:dev
                {:source-paths ["src/cljs"]
-
                 :figwheel true
                 ;; Alternatively, you can configure a function to run every time figwheel reloads.
-                ;; :figwheel {:on-jsload "om-next-leaflet.core/on-figwheel-reload"}
-
+                ;; :figwheel {:on-jsload "om-next-leaflet.core/init!"}
                 :compiler {:main om-next-leaflet.core
                            :asset-path    "js"
                            :output-to     "resources/public/js/main.js"
@@ -48,8 +37,8 @@
                            :source-map-timestamp true
                            :verbose true
                            :optimizations :none}}}}
-
-  :profiles {:dev
+  :profiles {:uberjar {:aot :all}
+             :dev
              {:dependencies [[figwheel-sidecar "0.5.0-6"]
                              [com.cemerick/piggieback "0.2.1"]
                              [org.clojure/tools.nrepl "0.2.12"]
