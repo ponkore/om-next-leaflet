@@ -4,9 +4,12 @@
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.util :as util]
-            [om-next-leaflet.leaflet :as leaflet]))
+            [om-next-leaflet.leaflet :as leaflet]
+            [devtools.core :as devtools]))
 
 (enable-console-print!)
+
+(devtools/install! [:formatters :hints])
 
 (defrecord MapState [lat lng zoom bounds])
 
