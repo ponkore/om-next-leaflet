@@ -34,7 +34,7 @@
   :repl-options {:init-ns user}
 
   :cljsbuild {:builds
-              {:app
+              {:dev
                {:source-paths ["src/cljs"]
 
                 :figwheel true
@@ -46,7 +46,8 @@
                            :output-to     "resources/public/js/main.js"
                            :output-dir    "resources/public/js"
                            :source-map-timestamp true
-                           :verbose true}}}}
+                           :verbose true
+                           :optimizations :none}}}}
 
   :figwheel {;; :http-server-root "public"       ;; serve static assets from resources/public/
              ;; :server-port 3449                ;; default
