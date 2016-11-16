@@ -4,12 +4,7 @@
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.util :as util]
-            [om-next-leaflet.leaflet :as leaflet]
-            [devtools.core :as devtools]))
-
-(enable-console-print!)
-
-(devtools/install! [:formatters :hints])
+            [om-next-leaflet.leaflet :as leaflet]))
 
 (defrecord MapState [lat lng zoom bounds])
 
@@ -202,4 +197,6 @@
      :parser parser
      :send (util/transit-post "/api")}))
 
-(om/add-root! reconciler Root (gdom/getElement "app"))
+(defn init!
+  []
+  (om/add-root! reconciler Root (gdom/getElement "app")))

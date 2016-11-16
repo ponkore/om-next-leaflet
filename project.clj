@@ -21,7 +21,7 @@
 
   :min-lein-version "2.6.1"
 
-  :source-paths ["src/clj" "src/cljc" "dev/src"]
+  :source-paths ["src/clj" "src/cljc" "dev/src/clj"]
 
   :test-paths ["test/clj"]
 
