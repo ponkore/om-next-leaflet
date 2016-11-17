@@ -32,8 +32,8 @@
                        :server-ip "127.0.0.1"           ;; default
                        :css-dirs ["resources/public/css"]
                        :ring-handler 'om-next-leaflet.server/app
-                       :server-logfile "log/figwheel.log"}
-    :repl-options {:nrepl-middleware ['cemerick.piggieback/wrap-cljs-repl]}
+                       :server-logfile "log/figwheel.log"
+                       :nrepl-middleware ['cemerick.piggieback/wrap-cljs-repl]}
     :build-ids ["dev"]
     :all-builds
     [{:id "dev"
