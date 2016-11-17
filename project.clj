@@ -28,8 +28,6 @@
               {:dev
                {:source-paths ["src/cljs"]
                 :figwheel true
-                ;; Alternatively, you can configure a function to run every time figwheel reloads.
-                ;; :figwheel {:on-jsload "om-next-leaflet.core/init!"}
                 :compiler {:main om-next-leaflet.core
                            :asset-path    "js"
                            :output-to     "resources/public/js/main.js"
@@ -39,10 +37,10 @@
                            :optimizations :none}}}}
   :profiles {:uberjar {:aot :all}
              :dev
-             {:dependencies [[figwheel-sidecar "0.5.0-6"]
+             {:dependencies [[figwheel-sidecar "0.5.8"]
                              [com.cemerick/piggieback "0.2.1"]
                              [org.clojure/tools.nrepl "0.2.12"]
-                             [binaryage/devtools "0.8.2"]]
-              :plugins [[lein-figwheel "0.5.0-6"]]
+                             [binaryage/devtools "0.8.3"]]
+              :plugins [[lein-figwheel "0.5.8"]]
               :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 )
