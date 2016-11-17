@@ -1,10 +1,6 @@
 (ns om-next-leaflet.geojson
-  (:require [clojure.data.json :as json]))
-
-(def ^{:private true}
-  json-root-dir
-  "GeoJSON の配置しているディレクトリ"
-  "src/clj/om_next_leaflet/")
+  (:require [clojure.java.io :as io]
+            [clojure.data.json :as json]))
 
 (def ^{:private true}
   earth-r
@@ -48,14 +44,11 @@
 
 (defn- read-all-data
   ""
-  ([fname transform-fn]
-     (read-all-data json-root-dir fname transform-fn))
-  ([base-dir fname transform-fn]
-     (let [fullpath (str base-dir fname)
-           json-data (-> fullpath slurp (json/read-str :key-fn keyword))]
-       (->> json-data
-            :features
-            (map transform-fn)))))
+  [fname transform-fn]
+  (let [json-data (-> fname io/resource slurp (json/read-str :key-fn keyword))]
+    (->> json-data
+         :features
+         (map transform-fn))))
 
 (def ^{:private true}
   lines
