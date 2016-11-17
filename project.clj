@@ -14,7 +14,10 @@
                  [sablono "0.7.6"]
                  [cljs-http "0.1.42" :exclusions
                   [org.clojure/clojure org.clojure/clojurescript
-                   com.cognitect/transit-cljs]]]
+                   com.cognitect/transit-cljs]]
+                 [com.layerware/hugsql "0.4.7"]
+                 [duct/hikaricp-component "0.1.0"]
+                 [org.postgresql/postgresql "9.4.1207"]]
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.1"]]
   :min-lein-version "2.6.1"
