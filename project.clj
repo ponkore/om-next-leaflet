@@ -44,7 +44,7 @@
                       :verbose true
                       :optimizations :none
                       :pretty-print true}}
-               :min {:source-paths ["src/cljs" "src/cljc"]
+               :min {:source-paths ["src/cljs" "src/cljc" "src/prod/cljs"]
                      :compiler
                      {:output-to "target/cljsbuild/public/js/app.js"
                       :externs ["react/externs/react.js"]
