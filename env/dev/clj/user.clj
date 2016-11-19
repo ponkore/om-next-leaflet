@@ -1,11 +1,11 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh]]
-            [om-next-leaflet.server :refer [system create-system create-system-fw cljs-repl]]))
+            [om-next-leaflet.server :refer [system create-system cljs-repl]]))
 
 (defn init []
   (alter-var-root #'system
-    (constantly (create-system-fw))))
+    (constantly (create-system))))
 
 (defn start []
   (alter-var-root #'system component/start))

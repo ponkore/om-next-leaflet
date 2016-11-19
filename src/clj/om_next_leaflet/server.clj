@@ -1,5 +1,7 @@
 (ns om-next-leaflet.server
   (:require [com.stuartsierra.component :as component]
+            [environ.core :refer [env]]
+            [duct.component.hikaricp :as hcp]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.reload :refer [wrap-reload]]
@@ -7,7 +9,6 @@
             [ring.component.jetty :refer [jetty-server]]
             [figwheel-sidecar.repl-api :as ra]
             [om-next-leaflet.parser :as parser]
-            [om-next-leaflet.database :refer [db]]
             [om.next.server :as om]
             [bidi.bidi :as bidi]))
 
@@ -73,20 +74,18 @@
         (assoc this :server nil)))))
 
 (defn create-system
-  [{:keys [port] :as config-options}]
-  (component/system-map
-   :database db
-   :http-server (component/using
-                 (jetty-server {:app app :port port})
-                 [:database])))
-
-(defn create-system-fw
-  []
-  (component/system-map
-   :database db
-   :http-server (component/using
-                 (map->Figwheel {})
-                 [:database])))
+  [& config-options]
+  (let [{:keys [port]} config-options
+        port (or port 3000)
+        database-uri (env :database-url)
+        is-dev? (= (env :is-dev?) "true")]
+    (component/system-map
+     :database (hcp/hikaricp {:uri database-uri})
+     :http-server (component/using
+                   (if is-dev?
+                     (map->Figwheel {})
+                     (jetty-server {:app app :port port}))
+                   [:database]))))
 
 (defn cljs-repl
   []

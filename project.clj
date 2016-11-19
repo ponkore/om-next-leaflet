@@ -25,7 +25,7 @@
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
   :min-lein-version "2.6.1"
-  :source-paths ["src/clj" "src/cljc" "env/dev/clj"]
+  :source-paths ["src/clj" "src/cljc" "env/dev/clj" "env/prod/clj"]
   :repl-options {:init-ns user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :test-paths ["test/clj"]
