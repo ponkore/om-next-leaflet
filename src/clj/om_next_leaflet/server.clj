@@ -27,7 +27,7 @@
 (defn api [req]
   (generate-response
    ((om/parser {:read parser/readf :mutate parser/mutatef})
-    {:state (:state req)} (:remote (:transit-params req)))))
+    {:state (:state req) :db (:db req)} (:remote (:transit-params req)))))
 
 (defn index [req]
   (assoc (resource-response (str "html/index.html") {:root "public"})
