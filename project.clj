@@ -18,53 +18,51 @@
                    com.cognitect/transit-cljs]]
                  [com.layerware/hugsql "0.4.7"]
                  [duct/hikaricp-component "0.1.0"]
-                 [org.postgresql/postgresql "9.4.1207"]]
-  :plugins [[lein-cljsbuild "1.1.1"]
+                 [org.postgresql/postgresql "9.4.1207"]
+                 [binaryage/devtools "0.8.3"]
+                 [com.cemerick/piggieback "0.2.1"]
+                 [org.clojure/tools.nrepl "0.2.12"]]
+  :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
   :min-lein-version "2.6.1"
-  ;; :source-paths ["src/clj" "src/cljc" "dev/src/clj"]
+  :source-paths ["src/clj" "src/cljc" "env/dev/clj"]
+  :repl-options {:init-ns user
+                 :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :test-paths ["test/clj"]
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
   :main om-next-leaflet.server
-  :repl-options {:init-ns user}
+  :cljsbuild {:builds
+              {:dev {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
+                     :figwheel true
+                     :compiler
+                     {:main om-next-leaflet.dev
+                      :asset-path "js"
+                      :output-to "resources/public/js/main.js"
+                      :output-dir "resources/public/js"
+                      :source-map true
+                      :source-map-timestamp true
+                      :verbose true
+                      :optimizations :none
+                      :pretty-print true}}
+               :min {:source-paths ["src/cljs" "src/cljc"]
+                     :compiler
+                     {:output-to "target/cljsbuild/public/js/app.js"
+                      :externs ["react/externs/react.js"]
+                      :optimizations :advanced
+                      :pretty-print false}}}}
+  :figwheel {:http-server-root "public"       ;; serve static assets from resources/public/
+             :server-port 3449                ;; default
+             :server-ip "127.0.0.1"           ;; default
+             :css-dirs ["resources/public/css"]
+             :ring-handler om-next-leaflet.server/app
+             :server-logfile "log/figwheel.log"}
   :profiles {:uberjar
              {:omit-source true
               :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
               :aot :all
-              :cljsbuild
-              {:builds
-               {:min
-                {:source-paths ["src/cljs"]
-                 :compiler
-                 {:output-to "target/cljsbuild/public/js/app.js"
-                  :externs ["react/externs/react.js"]
-                  :optimizations :advanced
-                  :pretty-print false
-                  :closure-warnings
-                  {:externs-validation :off :non-standard-jsdoc :off}}}}}
               :uberjar-name "om-next-leaflet.jar"
               :source-paths ["src/clj" "src/cljc" "env/prod/clj"]}
              :dev
-             {:dependencies [[figwheel-sidecar "0.5.8"]
-                             [com.cemerick/piggieback "0.2.1"]
-                             [org.clojure/tools.nrepl "0.2.12"]
-                             [binaryage/devtools "0.8.3"]]
-              :plugins [[lein-figwheel "0.5.8"]]
-              :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-              :source-paths ["src/clj" "src/cljc" "env/dev/clj"]}
-              :cljsbuild
-              {:builds
-               {:dev
-                {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-                 :figwheel true
-                 :compiler
-                 {:main om-next-leaflet.core
-                  :asset-path "js"
-                  :output-to "resources/public/js/main.js"
-                  :output-dir "resources/public/js"
-                  :source-map true
-                  :source-map-timestamp true
-                  :verbose true
-                  :optimizations :none
-                  :pretty-print true}}}}}
+             {:dependencies [[figwheel-sidecar "0.5.8"]]
+              :plugins [[lein-figwheel "0.5.8"]]}}
 )
