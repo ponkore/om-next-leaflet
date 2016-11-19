@@ -1,7 +1,5 @@
-(ns user
+(ns om-next-leaflet.main
   (:require [com.stuartsierra.component :as component]
-            [clojure.tools.namespace.repl :refer [refresh]]
-            [figwheel-sidecar.repl-api :as ra]
             [ring.component.jetty :refer [jetty-server]]
             [om-next-leaflet.server :refer [system create-database app]]))
 
@@ -18,30 +16,10 @@
   (alter-var-root #'system
     (fn [s] (when s (component/stop s)))))
 
-(defn go []
+;; TODO add-shutdown-hook
+(defn -main [& args]
   (init)
   (start))
-
-(defn reset []
-  (stop)
-  (refresh :after 'user/go))
-
-(defn cljs-repl
-  []
-  (ra/cljs-repl))
-
-(defrecord Figwheel [server]
-  component/Lifecycle
-  (start [this]
-    (if server
-      this
-      (assoc this :server (ra/start-figwheel!))))
-  (stop [this]
-    (if-not server
-      this
-      (do
-        (ra/stop-figwheel!)
-        (assoc this :server nil)))))
 
 (defn create-system
   [& config-options]
@@ -50,5 +28,5 @@
     (component/system-map
      :database (create-database)
      :http-server (component/using
-                   (map->Figwheel {})
+                   (jetty-server {:app app :port port})
                    [:database]))))

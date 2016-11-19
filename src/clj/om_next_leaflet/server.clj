@@ -6,8 +6,6 @@
             [ring.util.response :refer [response file-response resource-response]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.transit :refer [wrap-transit-response wrap-transit-params]]
-            [ring.component.jetty :refer [jetty-server]]
-            [figwheel-sidecar.repl-api :as ra]
             [om-next-leaflet.parser :as parser]
             [om.next.server :as om]
             [bidi.bidi :as bidi]))
@@ -60,33 +58,7 @@
        wrap-transit-params)
    system))
 
-(defrecord Figwheel [server]
-  component/Lifecycle
-  (start [this]
-    (if server
-      this
-      (assoc this :server (ra/start-figwheel!))))
-  (stop [this]
-    (if-not server
-      this
-      (do
-        (ra/stop-figwheel!)
-        (assoc this :server nil)))))
-
-(defn create-system
-  [& config-options]
-  (let [{:keys [port]} config-options
-        port (or port 3000)
-        database-uri (env :database-url)
-        is-dev? (= (env :is-dev?) "true")]
-    (component/system-map
-     :database (hcp/hikaricp {:uri database-uri})
-     :http-server (component/using
-                   (if is-dev?
-                     (map->Figwheel {})
-                     (jetty-server {:app app :port port}))
-                   [:database]))))
-
-(defn cljs-repl
+(defn create-database
   []
-  (ra/cljs-repl))
+  (let [database-uri (env :database-url)]
+    (hcp/hikaricp {:uri database-uri})))
