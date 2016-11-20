@@ -2,7 +2,6 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh]]
             [figwheel-sidecar.repl-api :as ra]
-            [ring.component.jetty :refer [jetty-server]]
             [om-next-leaflet.server :refer [system create-database app]]))
 
 (declare create-system)

@@ -1,8 +1,12 @@
 (ns om-next-leaflet.parser
   (:require [om.next.server :as om]
-            [om-next-leaflet.geojson :as geojson]))
+            [om-next-leaflet.geojson :as geojson]
+            [clojure.java.jdbc :as j]))
 
 (defmulti readf om/dispatch)
+
+;; (j/with-db-connection [conn (:spec db)]
+;;   (j/query conn ["select * from language"]))
 
 (defmethod readf :app/title
   [{:keys [state] :as env} k params]
