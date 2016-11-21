@@ -1,8 +1,11 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer [refresh]]
+            [taoensso.timbre :as timbre]
             [figwheel-sidecar.repl-api :as ra]
-            [om-next-leaflet.server :refer [system create-database app]]))
+            [om-next-leaflet.server :refer [system create-database app create-logger]]))
+
+(timbre/refer-timbre)
 
 (declare create-system)
 
@@ -48,6 +51,7 @@
         port (or port 3000)]
     (component/system-map
      :database (create-database)
+     :logger (create-logger {})
      :http-server (component/using
                    (map->Figwheel {})
-                   [:database]))))
+                   [:logger :database]))))

@@ -1,6 +1,7 @@
 (ns om-next-leaflet.server
   (:require [com.stuartsierra.component :as component]
             [environ.core :refer [env]]
+            [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
             [duct.component.hikaricp :as hcp]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response file-response resource-response]]
@@ -62,3 +63,39 @@
   []
   (let [database-uri (env :database-url)]
     (hcp/hikaricp {:uri database-uri})))
+
+(defrecord Logger [config]
+  component/Lifecycle
+  (start [this]
+    (timbre/merge-config! {:timestamp-opts {:pattern "yyyy/MM/dd HH:mm:ss,SSS"
+                                            :timezone (java.util.TimeZone/getDefault)}}))
+  (stop [this]
+    ;; do nothing
+    ))
+
+(defn create-logger
+  [config]
+  (map->Logger config))
+
+;; user=> (>pprint (timbre/merge-config! {}))
+;; {:level :debug,
+;;  :ns-whitelist [],
+;;  :ns-blacklist [],
+;;  :middleware [],
+;;  :timestamp-opts
+;;  {:pattern "yyyy/MM/dd HH:mm:ss,SSS",
+;;   :locale :jvm-default,
+;;   :timezone
+;;   #object[sun.util.calendar.ZoneInfo 0x9df0f6 "sun.util.calendar.ZoneInfo[id=\"GMT+09:00\",offset=32400000,dstSavings=0,useDaylight=false,transitions=0,lastRule=null]"]},
+;;  :output-fn
+;;  #object[taoensso.timbre$default_output_fn 0x8a313c "taoensso.timbre$default_output_fn@8a313c"],
+;;  :appenders
+;;  {:println
+;;   {:enabled? true,
+;;    :async? false,
+;;    :min-level nil,
+;;    :rate-limit nil,
+;;    :output-fn :inherit,
+;;    :fn
+;;    #object[taoensso.timbre.appenders.core$println_appender$fn__27461 0x6d9a43 "taoensso.timbre.appenders.core$println_appender$fn__27461@6d9a43"]}}}
+;;

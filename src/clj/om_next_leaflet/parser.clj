@@ -1,6 +1,7 @@
 (ns om-next-leaflet.parser
   (:require [om.next.server :as om]
             [om-next-leaflet.geojson :as geojson]
+            [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
             [clojure.java.jdbc :as j]))
 
 (defmulti readf om/dispatch)
