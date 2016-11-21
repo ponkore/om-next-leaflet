@@ -28,7 +28,7 @@
 (defui Leaflet
   Object
   (componentDidMount [this]
-    (let [{:keys [mapid center zoom base-layer optional-layer callback-fn]} (om/props this)
+    (let [{:keys [mapid center zoom base-layer optional-layer event-handlers]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
           ext-layer (fn [{:keys [title layer]}] {title layer})]
@@ -44,12 +44,12 @@
                                                  :draw { }})))
       (.on leaflet-map "draw:created"     (fn [e] (let [layer (.-layer e)] (.addLayer drawn-items layer))))
       (.on leaflet-map "draw:edited"      (fn [e] (let [layers (.-layers e)] )))
-      (.on leaflet-map "movestart"        (fn [e] (callback-fn e leaflet-map)))
-      (.on leaflet-map "move"             (fn [e] (callback-fn e leaflet-map)))
-      (.on leaflet-map "moveend"          (fn [e] (callback-fn e leaflet-map)))
-      (.on leaflet-map "zoomlevelschange" (fn [e] (.log js/console "**zoomlevelschange**") (callback-fn e leaflet-map)))
-      (.on leaflet-map "viewreset"        (fn [e] (.log js/console "**viewreset**") (callback-fn e leaflet-map)))
-      (.on leaflet-map "load"             (fn [e] (.log js/console "**load**") (callback-fn e leaflet-map)))
+      ;; event-handlers expected:
+      ;;   movestart, move, moveend, zoomlevelschange, viewreset, load
+      (doseq [k (keys event-handlers)
+              :let [callback (get event-handlers k)
+                    event-name (name k)]]
+        (.on leaflet-map event-name (fn [e] (callback e leaflet-map))))
       (om/update-state! this assoc :mapobj leaflet-map)))
   (render [this]
     (html

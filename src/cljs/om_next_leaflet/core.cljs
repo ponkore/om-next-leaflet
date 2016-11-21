@@ -185,7 +185,12 @@
                         :optional-layer (leaflet/create-tilelayer "地理院地図"
                                           "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
                                           "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
-                        :callback-fn (partial map-callback-fn this)})]]]))))
+                        :event-handlers {:movestart        (partial map-callback-fn this)
+                                         :move             (partial map-callback-fn this)
+                                         :moveend          (partial map-callback-fn this)
+                                         :zoomlevelschange (partial map-callback-fn this)
+                                         :viewreset        (partial map-callback-fn this)
+                                         :load             (partial map-callback-fn this)}})]]]))))
 
 (def parser (om/parser {:read read :mutate mutate}))
 
