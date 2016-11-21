@@ -6,6 +6,7 @@
                  [environ "1.1.0"]
                  [figwheel-sidecar "0.5.8" :scope "provided"]
                  [com.stuartsierra/component "0.3.1"]
+                 [com.taoensso/timbre "4.7.4"]
                  [bidi "2.0.14"]
                  [ring/ring "1.5.0"]
                  [ring-transit "0.1.6"]
