@@ -78,34 +78,21 @@
   [this]
   (-> (om/react-ref this :leaflet) om/get-state :mapobj))
 
-(defn map-state-change
+(defn change-mapstate
   [this e leaflet-map]
-  (let [center (-> leaflet-map .getCenter leaflet/latlng->clj)
+  (let [event-type (-> e .-type keyword) ;; for debug
+        center (-> leaflet-map .getCenter leaflet/latlng->clj)
         mapstate (map->MapState {:lat (:lat center)
                                  :lng (:lng center)
                                  :zoom (-> leaflet-map .getZoom)
                                  :bounds (-> leaflet-map .getBounds leaflet/bounds->clj)})]
-    (.log js/console (str "[" (-> e .-type) "]"))
+    (.log js/console (str "[" event-type "]"))
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
-
-(defn map-callback-dispatch [this e leaflet-map] (-> e .-type keyword))
-
-(defmulti map-callback-fn* map-callback-dispatch)
-(defmethod map-callback-fn* :movestart        [this e leaflet-map] (map-state-change this e leaflet-map))
-(defmethod map-callback-fn* :move             [this e leaflet-map] (map-state-change this e leaflet-map))
-(defmethod map-callback-fn* :moveend          [this e leaflet-map] (map-state-change this e leaflet-map))
-(defmethod map-callback-fn* :zoomlevelschange [this e leaflet-map] (map-state-change this e leaflet-map))
-(defmethod map-callback-fn* :viewreset        [this e leaflet-map] (map-state-change this e leaflet-map))
-(defmethod map-callback-fn* :load             [this e leaflet-map] (map-state-change this e leaflet-map))
-
-(defn map-callback-fn
-  [this e leaflet-map]
-  (map-callback-fn* this e leaflet-map))
 
 (def init-center [34.6964898 135.4930235])
 (def init-zoom 15)
 
-(def leaflet-map (om/factory leaflet/Leaflet))
+(def leaflet-map-fn (om/factory leaflet/Leaflet))
 
 (defn jump-to
   [this lat lng]
@@ -161,36 +148,30 @@
                                           (let [line-id (-> (om/react-ref this "sel1") .-value js/parseInt)]
                                             (om/set-query! this {:params {:line-id line-id}})))}]
                            (map (fn [[id line-name]] [:option {:value (str id)} line-name]) lines)))
-          ;; [:div.row
-          ;;  [:button {:on-click (fn [e] (leaflet/set-center (get-mapobj this)
-          ;;                                (first init-center)
-          ;;                                (second init-center)))} "center"]]
-          ;; [:p "zoom: " (:zoom mapstate)]
           [:div.list-group {:style {:overflow-y "scroll", :height "400px"}}
            (mapv (fn [{:keys [id station-name geometry]}]
-                   (let [[lng lat] geometry
-                         id-str (str id "/" lat "/" lng)]
+                   (let [[lng lat] geometry]
                      [:a.list-group-item.list-group-item-action
                       {:href "#" :key id :on-click (fn [e] (jump-to this lat lng))} station-name]))
                  stations)]]
          [:div.col-xs-9
-          (leaflet-map {:mapid "map"
-                        :ref :leaflet
-                        :center init-center
-                        :zoom init-zoom
-                        :base-layer (leaflet/create-tilelayer "OpenStreetMap"
-                                      "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                      "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
-                                      :maxZoom 18)
-                        :optional-layer (leaflet/create-tilelayer "地理院地図"
-                                          "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
-                                          "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
-                        :event-handlers {:movestart        (partial map-callback-fn this)
-                                         :move             (partial map-callback-fn this)
-                                         :moveend          (partial map-callback-fn this)
-                                         :zoomlevelschange (partial map-callback-fn this)
-                                         :viewreset        (partial map-callback-fn this)
-                                         :load             (partial map-callback-fn this)}})]]]))))
+          (leaflet-map-fn {:mapid "map"
+                           :ref :leaflet ;; referenced from get-mapobj function
+                           :center init-center
+                           :zoom init-zoom
+                           :base-layer (leaflet/create-tilelayer "OpenStreetMap"
+                                         "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                         "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
+                                         :maxZoom 18)
+                           :optional-layer (leaflet/create-tilelayer "地理院地図"
+                                             "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+                                             "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
+                           :event-handlers {:movestart        (partial change-mapstate this)
+                                            :move             (partial change-mapstate this)
+                                            :moveend          (partial change-mapstate this)
+                                            :zoomlevelschange (partial change-mapstate this)
+                                            :viewreset        (partial change-mapstate this)
+                                            :load             (partial change-mapstate this)}})]]]))))
 
 (def parser (om/parser {:read read :mutate mutate}))
 
