@@ -39,6 +39,9 @@
                        (clj->js { "drawnItems" drawn-items })
                        (clj->js { :collapsed false }))
               leaflet-map)
+      (.addTo (.scale (.-control js/L)
+                      (clj->js { "imperial" false }))
+              leaflet-map)
       (.addControl leaflet-map
                    (js/L.Control.Draw. (clj->js {:edit { :featureGroup drawn-items }
                                                  :draw { }})))
