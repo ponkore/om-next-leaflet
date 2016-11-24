@@ -150,6 +150,7 @@
                                 (let [lines-layer (get-lines-layer this)]
                                   (doseq [[id name bounding-box geometry] lines]
                                     (let [polyline (leaflet/create-polyline geometry)]
+                                      (.bindPopup polyline name)
                                       (.addTo polyline lines-layer)))))} "all-lines"]
           [:button {:on-click (fn [e]
                                 ;; add all statiions marker to 'stations-layer'
@@ -157,6 +158,7 @@
                                   (doseq [{:keys [id station-name line-name geometry]} stations]
                                     (let [[lng lat] geometry
                                           marker (leaflet/create-marker lat lng)]
+                                      (.bindPopup marker (str "<b>" line-name "</b><br>" station-name))
                                       (.addTo marker stations-layer)))))} "all-stations"]
           ]]
         [:div.row

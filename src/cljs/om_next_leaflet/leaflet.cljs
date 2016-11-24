@@ -38,8 +38,8 @@
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
           stations-layer (.addTo (js/L.FeatureGroup.) leaflet-map)
           lines-layer (.addTo (js/L.FeatureGroup.) leaflet-map)]
-      (doseq [l base-layers]
-        (.addTo (:layer l) leaflet-map))
+      (doseq [{:keys [layer]} base-layers]
+        (.addTo layer leaflet-map))
       (.addTo (.layers (.-control js/L)
                        (clj->js (apply merge (map (fn [{:keys [title layer]}] {title layer}) base-layers)))
                        (clj->js {"drawnItems" drawn-items
