@@ -78,6 +78,14 @@
   [this]
   (-> (om/react-ref this :leaflet) om/get-state :mapobj))
 
+(defn get-stations-layer
+  [this]
+  (-> (om/react-ref this :leaflet) om/get-state :stations-layer))
+
+(defn get-lines-layer
+  [this]
+  (-> (om/react-ref this :leaflet) om/get-state :lines-layer))
+
 (defn change-mapstate
   [this e leaflet-map]
   (let [event-type (-> e .-type keyword) ;; for debug
@@ -138,8 +146,22 @@
                                                        ])))
                     :disabled loading?} "update"]
           [:button {:on-click (fn [e]
-                                (let [leaflet-map (get-mapobj this)]
-                                  ))} "rect"]]]
+                                ;; add all line polygons to 'lines-layer'
+                                (let [leaflet-map (get-mapobj this)
+                                      lines-layer (get-lines-layer this)]
+                                  (doseq [[id name bounding-box geometry] lines]
+                                    (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
+                                          polyline (.polyline js/L (clj->js geom))]
+                                      (.addTo polyline lines-layer)))))} "all-lines"]
+          [:button {:on-click (fn [e]
+                                ;; add all statiions marker to 'stations-layer'
+                                (let [leaflet-map (get-mapobj this)
+                                      stations-layer (get-stations-layer this)]
+                                  (doseq [{:keys [id station-name line-name geometry]} stations]
+                                    (let [[lng lat] geometry
+                                          marker (leaflet/create-marker lat lng)]
+                                      (.addTo marker stations-layer)))))} "all-stations"]
+          ]]
         [:div.row
          [:div.col-xs-3
           (into [] (concat [:select.custom-select

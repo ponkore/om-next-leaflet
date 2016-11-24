@@ -27,7 +27,7 @@
 (defmethod readf :app/lines
   [{:keys [state] :as env} k params]
   (let [value (->> (geojson/get-lines)
-                   (map (fn [{:keys [id line-name bounding-box]}] [id line-name bounding-box])))]
+                   (map (fn [{:keys [id line-name bounding-box geometry]}] [id line-name bounding-box geometry])))]
     {:value value}))
 
 (defmethod readf :loading?
