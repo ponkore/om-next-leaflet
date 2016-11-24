@@ -25,6 +25,11 @@
   [lat lng]
   (.marker js/L (.latLng js/L lat lng)))
 
+(defn create-polyline
+  [geometry]
+  (let [geom (map (fn [[lng lat]] [lat lng]) geometry)]
+    (.polyline js/L (clj->js geom))))
+
 (defui Leaflet
   Object
   (componentDidMount [this]

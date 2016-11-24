@@ -147,16 +147,13 @@
                     :disabled loading?} "update"]
           [:button {:on-click (fn [e]
                                 ;; add all line polygons to 'lines-layer'
-                                (let [leaflet-map (get-mapobj this)
-                                      lines-layer (get-lines-layer this)]
+                                (let [lines-layer (get-lines-layer this)]
                                   (doseq [[id name bounding-box geometry] lines]
-                                    (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
-                                          polyline (.polyline js/L (clj->js geom))]
+                                    (let [polyline (leaflet/create-polyline geometry)]
                                       (.addTo polyline lines-layer)))))} "all-lines"]
           [:button {:on-click (fn [e]
                                 ;; add all statiions marker to 'stations-layer'
-                                (let [leaflet-map (get-mapobj this)
-                                      stations-layer (get-stations-layer this)]
+                                (let [stations-layer (get-stations-layer this)]
                                   (doseq [{:keys [id station-name line-name geometry]} stations]
                                     (let [[lng lat] geometry
                                           marker (leaflet/create-marker lat lng)]
