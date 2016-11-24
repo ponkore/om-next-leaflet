@@ -159,13 +159,14 @@
                            :ref :leaflet ;; referenced from get-mapobj function
                            :center init-center
                            :zoom init-zoom
-                           :base-layer (leaflet/create-tilelayer "OpenStreetMap"
-                                         "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                         "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
-                                         :maxZoom 18)
-                           :optional-layer (leaflet/create-tilelayer "地理院地図"
-                                             "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
-                                             "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
+                           :base-layers [(leaflet/create-tilelayer "OpenStreetMap"
+                                           "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                           "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
+                                           :maxZoom 18)
+                                         (leaflet/create-tilelayer "地理院地図"
+                                           "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+                                           "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
+                                         ]
                            :event-handlers {:movestart        (partial change-mapstate this)
                                             :move             (partial change-mapstate this)
                                             :moveend          (partial change-mapstate this)

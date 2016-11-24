@@ -28,15 +28,18 @@
 (defui Leaflet
   Object
   (componentDidMount [this]
-    (let [{:keys [mapid center zoom base-layer optional-layer event-handlers]} (om/props this)
+    (let [{:keys [mapid center zoom base-layers event-handlers]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
-          ext-layer (fn [{:keys [title layer]}] {title layer})]
-      (.addTo (:layer base-layer) leaflet-map)
+          stations-layer (.addTo (js/L.FeatureGroup.) leaflet-map)
+          lines-layer (.addTo (js/L.FeatureGroup.) leaflet-map)]
+      (doseq [l base-layers]
+        (.addTo (:layer l) leaflet-map))
       (.addTo (.layers (.-control js/L)
-                       (clj->js (merge (ext-layer base-layer)
-                                       (ext-layer optional-layer)))
-                       (clj->js { "drawnItems" drawn-items })
+                       (clj->js (apply merge (map (fn [{:keys [title layer]}] {title layer}) base-layers)))
+                       (clj->js {"drawnItems" drawn-items
+                                 "stations" stations-layer
+                                 "lines" lines-layer})
                        (clj->js { :collapsed false }))
               leaflet-map)
       (.addTo (.scale (.-control js/L)
@@ -53,7 +56,7 @@
               :let [callback (get event-handlers k)
                     event-name (name k)]]
         (.on leaflet-map event-name (fn [e] (callback e leaflet-map))))
-      (om/update-state! this assoc :mapobj leaflet-map)))
+      (om/update-state! this assoc :mapobj leaflet-map :stations-layer stations-layer :lines-layer lines-layer)))
   (render [this]
     (html
      [:div {:id (:mapid (om/props this))}])))
