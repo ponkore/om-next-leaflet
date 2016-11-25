@@ -98,7 +98,7 @@
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
 
 (def init-center [34.6964898 135.4930235])
-(def init-zoom 15)
+(def init-zoom 12)
 
 (def leaflet-map-fn (om/factory leaflet/Leaflet))
 
@@ -125,11 +125,16 @@
   (let [lines-layer (get-lines-layer this)
         {:keys [app/lines]} (om/props this)]
     (doseq [[id name bounding-box geometry] lines]
-      (let [polyline (leaflet/create-polyline geometry :color "#666666" :weight 6 :opacity 0.7)]
+      (let [line-color "#666666"
+            polyline (leaflet/create-polyline geometry :color line-color :weight 6 :opacity 0.7)]
         (doto polyline
-          (.bindPopup name)
-          (.on "mouseover" #(.setStyle polyline (clj->js {:color "#ff0000"})))
-          (.on "mouseout" #(.setStyle polyline (clj->js {:color "#666666"})))
+          (.bindTooltip (str "<b>" name "</b>"))
+          (.on "mouseover" (fn [e]
+                             (.setStyle polyline (clj->js {:color "#ff0000" :weight 8}))
+                             (.openTooltip polyline (.-latlng e))))
+          (.on "mouseout" (fn [e]
+                            (.setStyle polyline (clj->js {:color line-color :weight 6}))
+                            (.closeTooltip polyline)))
           (.addTo lines-layer))))))
 
 (defui Root
