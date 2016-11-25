@@ -3,7 +3,7 @@
             [sablono.core :as html :refer-macros [html]]))
 
 (defn create-tilelayer
-  [title url attribution & {:keys [maxZoom] :as opts}]
+  [title url attribution & {:keys [minZoom maxZoom] :as opts}]
   (let [opts (merge {:attribution attribution} opts)]
     {:title title :layer (.tileLayer js/L url (clj->js opts))}))
 
@@ -22,13 +22,20 @@
   (.setView leaflet-map (.latLng js/L lat lng)))
 
 (defn create-marker
-  [lat lng]
-  (.marker js/L (.latLng js/L lat lng)))
+  [lat lng & {:keys [] :as opts}]
+  (let [opts (merge {} opts)]
+    (.marker js/L (.latLng js/L lat lng (clj->js opts)))))
+
+(defn create-circle
+  [lat lng radius & {:keys [] :as opts}]
+  (let [opts (merge {} opts)]
+    (.circle js/L (clj->js [lat lng]) radius opts)))
 
 (defn create-polyline
-  [geometry]
-  (let [geom (map (fn [[lng lat]] [lat lng]) geometry)]
-    (.polyline js/L (clj->js geom))))
+  [geometry & {:keys [color weight] :as opts}]
+  (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
+        opts (merge {} opts)]
+    (.polyline js/L (clj->js geom) (clj->js opts))))
 
 (defui Leaflet
   Object

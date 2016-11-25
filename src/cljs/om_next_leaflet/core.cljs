@@ -109,6 +109,29 @@
     (leaflet/set-center leaflet-map lat lng)
     (.addTo marker leaflet-map)))
 
+;; add all statiions marker to 'stations-layer'
+(defn init-stations-on-line
+  [this stations]
+  (let [stations-layer (get-stations-layer this)]
+    (doseq [{:keys [id station-name line-name geometry]} stations]
+      (let [[lng lat] geometry
+            marker (leaflet/create-marker lat lng)]
+        (.bindPopup marker (str "<b>" line-name "</b><br>" station-name))
+        (.addTo marker stations-layer)))))
+
+;; add all line polygons to 'lines-layer'
+(defn init-all-lines
+  [this]
+  (let [lines-layer (get-lines-layer this)
+        {:keys [app/lines]} (om/props this)]
+    (doseq [[id name bounding-box geometry] lines]
+      (let [polyline (leaflet/create-polyline geometry :color "#666666" :weight 6 :opacity 0.7)]
+        (doto polyline
+          (.bindPopup name)
+          (.on "mouseover" #(.setStyle polyline (clj->js {:color "#ff0000"})))
+          (.on "mouseout" #(.setStyle polyline (clj->js {:color "#666666"})))
+          (.addTo lines-layer))))))
+
 (defui Root
   static om/IQueryParams
   (params [_]
@@ -122,7 +145,8 @@
   (componentWillMount [this]
     (.log js/console "will-mount"))
   (componentDidMount [this]
-    (.log js/console "did-mount"))
+    (.log js/console "did-mount")
+    (init-all-lines this))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
@@ -145,37 +169,9 @@
                                                        :loading?
                                                        ])))
                     :disabled loading?} "update"]
-          [:button {:on-click (fn [e]
-                                ;; add all line polygons to 'lines-layer'
-                                (let [lines-layer (get-lines-layer this)]
-                                  (doseq [[id name bounding-box geometry] lines]
-                                    (let [polyline (leaflet/create-polyline geometry)]
-                                      (.bindPopup polyline name)
-                                      (.addTo polyline lines-layer)))))} "all-lines"]
-          [:button {:on-click (fn [e]
-                                ;; add all statiions marker to 'stations-layer'
-                                (let [stations-layer (get-stations-layer this)]
-                                  (doseq [{:keys [id station-name line-name geometry]} stations]
-                                    (let [[lng lat] geometry
-                                          marker (leaflet/create-marker lat lng)]
-                                      (.bindPopup marker (str "<b>" line-name "</b><br>" station-name))
-                                      (.addTo marker stations-layer)))))} "all-stations"]
           ]]
         [:div.row
-         [:div.col-xs-3
-          (into [] (concat [:select.custom-select
-                            {:ref "sel1"
-                             :on-change (fn [e]
-                                          (let [line-id (-> (om/react-ref this "sel1") .-value js/parseInt)]
-                                            (om/set-query! this {:params {:line-id line-id}})))}]
-                           (map (fn [[id line-name]] [:option {:value (str id)} line-name]) lines)))
-          [:div.list-group {:style {:overflow-y "scroll", :height "400px"}}
-           (mapv (fn [{:keys [id station-name geometry]}]
-                   (let [[lng lat] geometry]
-                     [:a.list-group-item.list-group-item-action
-                      {:href "#" :key id :on-click (fn [e] (jump-to this lat lng))} station-name]))
-                 stations)]]
-         [:div.col-xs-9
+         [:div.col-xs-12
           (leaflet-map-fn {:mapid "map"
                            :ref :leaflet ;; referenced from get-mapobj function
                            :center init-center
@@ -184,6 +180,11 @@
                                            "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                            "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
                                            :maxZoom 18)
+                                         (leaflet/create-tilelayer "淡色地図"
+                                           "http://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png"
+                                           "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"
+                                           :maxZoom 18
+                                           :minZoom 12)
                                          (leaflet/create-tilelayer "地理院地図"
                                            "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
                                            "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
