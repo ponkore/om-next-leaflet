@@ -22,9 +22,9 @@
   (.setView leaflet-map (.latLng js/L lat lng)))
 
 (defn create-marker
-  [lat lng & {:keys [] :as opts}]
+  [lat lng & {:keys [radius] :as opts}]
   (let [opts (merge {} opts)]
-    (.marker js/L (.latLng js/L lat lng (clj->js opts)))))
+    (.circleMarker js/L (.latLng js/L lat lng) (clj->js opts))))
 
 (defn create-circle
   [lat lng radius & {:keys [] :as opts}]

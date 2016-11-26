@@ -21,7 +21,7 @@
   (let [line-name (->> (geojson/get-lines (fn [{:keys [id]}] (= id line-id)))
                        first
                        :line-name)
-        stations (geojson/get-stations (fn [m] (= (:line-name m) line-name)))]
+        stations (geojson/get-stations #_(fn [m] (= (:line-name m) line-name)))]
     {:value stations}))
 
 (defmethod readf :app/lines

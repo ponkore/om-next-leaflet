@@ -110,25 +110,27 @@
     (.addTo marker leaflet-map)))
 
 ;; add all statiions marker to 'stations-layer'
-(defn init-stations-on-line
+(defn init-station-markers
   [this stations]
   (let [stations-layer (get-stations-layer this)]
     (doseq [{:keys [id station-name line-name geometry]} stations]
       (let [[lng lat] geometry
-            marker (leaflet/create-marker lat lng)]
-        (.bindPopup marker (str "<b>" line-name "</b><br>" station-name))
-        (.addTo marker stations-layer)))))
+            marker (leaflet/create-marker lat lng :radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1)]
+        (doto marker
+          (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+          (.on "mouseover" (fn [e] (.setStyle marker (clj->js {:fillColor "#ff0000"}))))
+          (.on "mouseout" (fn [e] (.setStyle marker (clj->js {:fillColor "#0000ff"}))))
+          (.addTo stations-layer))))))
 
 ;; add all line polygons to 'lines-layer'
 (defn init-all-lines
-  [this]
-  (let [lines-layer (get-lines-layer this)
-        {:keys [app/lines]} (om/props this)]
+  [this lines]
+  (let [lines-layer (get-lines-layer this)]
     (doseq [[id name bounding-box geometry] lines]
       (let [line-color "#666666"
             polyline (leaflet/create-polyline geometry :color line-color :weight 6 :opacity 0.7)]
         (doto polyline
-          (.bindTooltip (str "<b>" name "</b>"))
+          (.bindTooltip (str "<b>" name "[" id "]</b>"))
           (.on "mouseover" (fn [e]
                              (.setStyle polyline (clj->js {:color "#ff0000" :weight 8}))
                              (.openTooltip polyline (.-latlng e))))
@@ -151,7 +153,9 @@
     (.log js/console "will-mount"))
   (componentDidMount [this]
     (.log js/console "did-mount")
-    (init-all-lines this))
+    (let [{:keys [app/lines app/stations]} (om/props this)]
+      (init-all-lines this lines)
+      (init-station-markers this stations)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
