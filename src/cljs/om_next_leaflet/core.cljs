@@ -82,17 +82,6 @@
     {:value v}
     {}))
 
-;; TODO: type、title は必須として、placeholder は optional
-;; さらに on-click 他の属性を与えたい
-;; あと、.form-group .row が前提(label の有無で切り替える？)
-(defn input-text
-  [type title placeholder]
-  (let [id (str (gensym))]
-    [:div.form-group.row
-     [:label.form-control-label {:class "col-xs-2" :for id} title]
-     [:div {:class "col-xs-4"}
-      [:input.form-control.form-control-sm {:id id :type type :placeholder placeholder}]]]))
-
 (defn get-mapobj
   [this]
   (-> (om/react-ref this :leaflet) om/get-state :mapobj))
@@ -117,13 +106,6 @@
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
 
 (def leaflet-map-fn (om/factory leaflet/Leaflet))
-
-(defn jump-to
-  [this lat lng]
-  (let [leaflet-map (get-mapobj this)
-        marker (leaflet/create-marker lat lng)]
-    (leaflet/set-center leaflet-map lat lng)
-    (.addTo marker leaflet-map)))
 
 ;; add all statiions marker to 'stations-layer'
 (defn init-station-markers
