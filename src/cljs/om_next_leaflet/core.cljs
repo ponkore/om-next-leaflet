@@ -6,7 +6,26 @@
             [om-next-leaflet.util :as util]
             [om-next-leaflet.leaflet :as leaflet]))
 
+(def init-center [34.6964898 135.4930235])
+(def init-zoom 12)
+
+(def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
+                 "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                 "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
+                 :maxZoom 18))
+(def pale-layer (leaflet/create-tilelayer "淡色地図"
+                  "http://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png"
+                  "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"
+                  :maxZoom 18
+                  :minZoom 12))
+(def std-layer (leaflet/create-tilelayer "地理院地図"
+                 "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+                 "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"))
+
 (defrecord MapState [lat lng zoom bounds])
+
+(defrecord StationInfo [id name line-info])
+(defrecord StationLineInfo [station-id line-id kilotei])
 
 (defmulti mutate om/dispatch)
 
@@ -97,9 +116,6 @@
     (.log js/console (str "[" event-type "]"))
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
 
-(def init-center [34.6964898 135.4930235])
-(def init-zoom 12)
-
 (def leaflet-map-fn (om/factory leaflet/Leaflet))
 
 (defn jump-to
@@ -142,7 +158,7 @@
 (defui Root
   static om/IQueryParams
   (params [_]
-    {:line-id 0})
+    {:line-id 25})
   static om/IQuery
   (query [this]
     '[:app/title :loading? :app/mapstate :app/lines
@@ -165,45 +181,40 @@
                   app/lines]} (om/props this)]
       (html
        [:div
-        [:div.row
-         [:div.col-xs-3
-          [:p title]]
-         [:div.col-xs-9
-          [:input {:ref "title"}]
-          [:button {:on-click (fn [e]
+        [:div.leaflet-control-layers.leaflet-control-layers-expanded.leaflet-control
+         {:style {:position "absolute"
+                  :top "10px"
+                  :left "45px"
+                  :width "200px"
+                  :bottom "40px"
+                  :background "#ffffff"
+                  :font-size "12px"
+                  :box-shadow "1px 1px 5px rgba(0,0,0,0,4)"
+                  :border-radius "5px"
+                  :padding "6px 10px 6px 6px"
+                  :color "#333"}}
+         [:input {:ref "title"}]
+         [:p title]
+         [:p (str "zoom: " (:zoom mapstate init-zoom))]
+         [:button {:on-click (fn [e]
                                 (let [new-title (.-value (dom/node this "title"))]
                                   (om/transact! this `[(app/update-title {:new-title ~new-title})
                                                        (app/loading?)
                                                        :app/title
                                                        :loading?
                                                        ])))
-                    :disabled loading?} "update"]
-          ]]
-        [:div.row
-         [:div.col-xs-12
-          (leaflet-map-fn {:mapid "map"
-                           :ref :leaflet ;; referenced from get-mapobj function
-                           :center init-center
-                           :zoom init-zoom
-                           :base-layers [(leaflet/create-tilelayer "OpenStreetMap"
-                                           "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                           "Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a>"
-                                           :maxZoom 18)
-                                         (leaflet/create-tilelayer "淡色地図"
-                                           "http://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png"
-                                           "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"
-                                           :maxZoom 18
-                                           :minZoom 12)
-                                         (leaflet/create-tilelayer "地理院地図"
-                                           "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
-                                           "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>")
-                                         ]
-                           :event-handlers {:movestart        (partial change-mapstate this)
-                                            :move             (partial change-mapstate this)
-                                            :moveend          (partial change-mapstate this)
-                                            :zoomlevelschange (partial change-mapstate this)
-                                            :viewreset        (partial change-mapstate this)
-                                            :load             (partial change-mapstate this)}})]]]))))
+                   :disabled loading?} "update"]]
+        (leaflet-map-fn {:mapid "map"
+                         :ref :leaflet ;; referenced from get-mapobj function
+                         :center init-center
+                         :zoom init-zoom
+                         :base-layers [osm-layer pale-layer std-layer]
+                         :event-handlers {:movestart        (partial change-mapstate this)
+                                          :move             (partial change-mapstate this)
+                                          :moveend          (partial change-mapstate this)
+                                          :zoomlevelschange (partial change-mapstate this)
+                                          :viewreset        (partial change-mapstate this)
+                                          :load             (partial change-mapstate this)}})]))))
 
 (def parser (om/parser {:read read :mutate mutate}))
 
