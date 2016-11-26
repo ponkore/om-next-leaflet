@@ -45,6 +45,12 @@
   {:value {:keys [:app/mapstate]}
    :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
 
+(defmethod mutate 'app/update-station-info
+  [{:keys [state]} _ {:keys [new-station-info]}]
+  {;; :remote true
+   :value {:keys [:app/station-info]}
+   :action (fn [] (swap! state assoc :app/station-info new-station-info))})
+
 (defmulti read om/dispatch)
 
 (defmethod read :app/title
@@ -75,6 +81,13 @@
       (if v
         {:value v :remote true}
         {:remote true}))))
+
+(defmethod read :app/station-info
+  [{:keys [state] :as env} k _]
+  (let [st @state]
+    (if-let [v (get st k)]
+      {:value v} ;; :remote true
+      {})))
 
 (defmethod read :default ;; :app/mapstate
   [{:keys [state] :as env} k params]
@@ -111,7 +124,16 @@
       (let [[lng lat] geometry
             marker (leaflet/create-marker lat lng :radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1)]
         (doto marker
-          (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+          ;; (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+          (.on "click" (fn [e] (let [new-station-info (map->StationInfo {:id id
+                                                                         :name station-name
+                                                                         :line-info
+                                                                         (list
+                                                                          (map->StationLineInfo {:station-id id
+                                                                                                 :line-id line-name
+                                                                                                 :kilotei 10}))
+                                                                         })]
+                                 (om/transact! this `[(app/update-station-info {:new-station-info ~new-station-info})]))))
           (.on "mouseover" (fn [e] (.setStyle marker (clj->js {:fillColor "#ff0000"}))))
           (.on "mouseout" (fn [e] (.setStyle marker (clj->js {:fillColor "#0000ff"}))))
           (.addTo stations-layer))))))
@@ -139,9 +161,12 @@
     {:line-id 25})
   static om/IQuery
   (query [this]
-    '[:app/title :loading? :app/mapstate :app/lines
+    '[:app/title
+      :loading?
+      :app/mapstate
+      :app/lines
       (:app/stations {:line-id ?line-id})
-      ])
+      :app/station-info])
   Object
   (componentWillMount [this]
     (.log js/console "will-mount"))
@@ -153,10 +178,12 @@
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
-    (let [{:keys [app/title loading?
+    (let [{:keys [app/title
+                  loading?
                   app/mapstate
                   app/stations
-                  app/lines]} (om/props this)]
+                  app/lines
+                  app/station-info]} (om/props this)]
       (html
        [:div
         [:div.leaflet-control-layers.leaflet-control-layers-expanded.leaflet-control
@@ -174,6 +201,15 @@
          [:input {:ref "title"}]
          [:p title]
          [:p (str "zoom: " (:zoom mapstate init-zoom))]
+         [:p (str "station-id:" (:id station-info))]
+         [:p (str "station-name:" (:name station-info))]
+         [:p (str "line-id: " (:line-id (first (:line-info station-info))))]
+         [:input {:ref "kilotei" :value (str (:kilotei (first (:line-info station-info))))
+                  :on-change (fn [e] (let [new-text (-> e .-target .-value)
+                                           li (first (:line-info station-info))
+                                           li (list (update li :kilotei (fn [_] constantly new-text)))
+                                           new-value (update station-info :line-info (fn [_] constantly li))]
+                                       (om/transact! this `[(app/update-station-info {:new-station-info ~new-value})])))}]
          [:button {:on-click (fn [e]
                                 (let [new-title (.-value (dom/node this "title"))]
                                   (om/transact! this `[(app/update-title {:new-title ~new-title})
