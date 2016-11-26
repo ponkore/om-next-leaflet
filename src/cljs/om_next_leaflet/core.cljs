@@ -82,10 +82,6 @@
     {:value v}
     {}))
 
-(defn get-mapobj
-  [this]
-  (-> (om/react-ref this :leaflet) om/get-state :mapobj))
-
 (defn get-stations-layer
   [this]
   (-> (om/react-ref this :leaflet) om/get-state :stations-layer))
@@ -187,7 +183,7 @@
                                                        ])))
                    :disabled loading?} "update"]]
         (leaflet-map-fn {:mapid "map"
-                         :ref :leaflet ;; referenced from get-mapobj function
+                         :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center
                          :zoom init-zoom
                          :base-layers [osm-layer pale-layer std-layer]
