@@ -93,7 +93,10 @@
       :app/kilotei])
   Object
   (componentWillMount [this]
-    (.log js/console "will-mount"))
+    (.log js/console "will-mount")
+    (om/transact! this `[(app/update-kilotei {:id -1
+                                              :line-id -1
+                                              :kilotei ""})]))
   (componentDidMount [this]
     (.log js/console "did-mount")
     (let [{:keys [app/lines app/stations]} (om/props this)]
@@ -112,19 +115,19 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         [:input {:ref "title"
+         #_[:input {:ref "title"
                   :value title
                   :on-change (fn [e] (let [v (-> e .-target .-value)]
                                        (om/transact! this `[(app/update-title {:new-title ~v})])))}]
-         [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
+         #_[:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
                                        (om/transact! this `[(app/update-title {:new-title ~new-title})
                                                             :app/title])))
-                   } "update"]
+                     } "update"]
+         (into [] (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
          (let [{:keys [id station-name line-id line-name]} station-info]
            [:div
             [:p (str "zoom: " (:zoom mapstate init-zoom))]
-            [:p (str "[" id "] " station-name)]
-            [:p (str "[" line-id "] " line-name)]
+            [:p (str "[" line-id "] " line-name "/ [" id "] " station-name)]
             [:input {:value kilotei
                      :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
                                           (om/transact! this `[(app/update-kilotei {:id ~id
