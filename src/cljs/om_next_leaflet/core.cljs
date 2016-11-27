@@ -183,41 +183,31 @@
                   app/mapstate
                   app/stations
                   app/lines
-                  app/station-info]} (om/props this)]
+                  app/station-info]} (om/props this)
+          [first-line-info & _] (:line-info station-info)]
       (html
        [:div
-        [:div.leaflet-control-layers.leaflet-control-layers-expanded.leaflet-control
-         {:style {:position "absolute"
-                  :top "10px"
-                  :left "45px"
-                  :width "200px"
-                  :bottom "40px"
-                  :background "#ffffff"
-                  :font-size "12px"
-                  :box-shadow "1px 1px 5px rgba(0,0,0,0,4)"
-                  :border-radius "5px"
-                  :padding "6px 10px 6px 6px"
-                  :color "#333"}}
+        [:div {:id "custom-control"
+               :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
          [:input {:ref "title"}]
          [:p title]
+         [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
+                                       (om/transact! this `[(app/update-title {:new-title ~new-title})
+                                                            (app/loading?)
+                                                            :app/title
+                                                            :loading?])))
+                   :disabled loading?} "update"]
          [:p (str "zoom: " (:zoom mapstate init-zoom))]
          [:p (str "station-id:" (:id station-info))]
          [:p (str "station-name:" (:name station-info))]
-         [:p (str "line-id: " (:line-id (first (:line-info station-info))))]
-         [:input {:ref "kilotei" :value (str (:kilotei (first (:line-info station-info))))
+         [:p (str "line-id: " (:line-id first-line-info))]
+         [:input {:value (str (:kilotei first-line-info))
                   :on-change (fn [e] (let [new-text (-> e .-target .-value)
-                                           li (first (:line-info station-info))
-                                           li (list (update li :kilotei (fn [_] constantly new-text)))
-                                           new-value (update station-info :line-info (fn [_] constantly li))]
+                                           [li & _] (:line-info station-info)
+                                           li (list (assoc li :kilotei new-text))
+                                           new-value (assoc station-info :line-info li)]
                                        (om/transact! this `[(app/update-station-info {:new-station-info ~new-value})])))}]
-         [:button {:on-click (fn [e]
-                                (let [new-title (.-value (dom/node this "title"))]
-                                  (om/transact! this `[(app/update-title {:new-title ~new-title})
-                                                       (app/loading?)
-                                                       :app/title
-                                                       :loading?
-                                                       ])))
-                   :disabled loading?} "update"]]
+         ]
         (leaflet-map-fn {:mapid "map"
                          :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center

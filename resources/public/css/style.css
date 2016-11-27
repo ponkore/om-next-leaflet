@@ -1,0 +1,33 @@
+.container {
+    position: relative;
+    max-width: 100%;
+    width: 100%;
+}
+.navbar-collapse {
+  display: block !important;
+  height: auto !important;
+  padding-bottom: 0;
+  overflow: visible !important;
+}
+.navbar-toggle {
+  display: none;
+}
+.navbar-brand {
+  margin-left: -15px;
+}
+#custom-control {
+  position: absolute;
+  top: 10px;
+  left: 45px;
+  width: 200px;
+  bottom: 40px;
+  background: #ffffff;
+  font-size: 12px;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0,4);
+  border-radius: 5px;
+  padding: 6px 10px 6px 6px;
+  color: #333;
+}
+#map {
+  height: 500px;
+}
