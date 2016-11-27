@@ -27,10 +27,6 @@
                    (map (fn [{:keys [id line-name bounding-box geometry]}] [id line-name bounding-box geometry])))]
     {:value value}))
 
-(defmethod readf :loading?
-  [_ _ _]
-  {:value false})
-
 (defmulti mutatef om/dispatch)
 
 (defmethod mutatef 'app/update-title
