@@ -107,29 +107,32 @@
                   app/mapstate
                   app/stations
                   app/lines
-                  app/station-info]} (om/props this)]
+                  app/station-info
+                  app/kilotei]} (om/props this)]
       (html
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         [:input {:ref "title"}]
-         [:p title]
+         [:input {:ref "title"
+                  :value title
+                  :on-change (fn [e] (let [v (-> e .-target .-value)]
+                                       (om/transact! this `[(app/update-title {:new-title ~v})])))}]
          [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
                                        (om/transact! this `[(app/update-title {:new-title ~new-title})
                                                             (app/loading?)
                                                             :app/title
                                                             :loading?])))
                    :disabled loading?} "update"]
-         (let [{:keys [id station-name line-id line-name kilotei]} station-info]
+         (let [{:keys [id station-name line-id line-name]} station-info]
            [:div
             [:p (str "zoom: " (:zoom mapstate init-zoom))]
             [:p (str "[" id "] " station-name)]
             [:p (str "[" line-id "] " line-name)]
             [:input {:value kilotei
                      :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
-                                          (om/transact! this `[(app/update-station-info {:id ~id
-                                                                                         :line-id ~line-id
-                                                                                         :kilotei ~new-kilotei})])))}]])]
+                                          (om/transact! this `[(app/update-kilotei {:id ~id
+                                                                                    :line-id ~line-id
+                                                                                    :kilotei ~new-kilotei})])))}]])]
         (leaflet-map-fn {:mapid "map"
                          :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center
