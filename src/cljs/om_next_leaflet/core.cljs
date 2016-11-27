@@ -25,9 +25,6 @@
 
 (defrecord MapState [lat lng zoom bounds])
 
-(defrecord StationInfo [id name line-info])
-(defrecord StationLineInfo [station-id line-id kilotei])
-
 (defn get-stations-layer
   [this]
   (-> (om/react-ref this :leaflet) om/get-state :stations-layer))
@@ -39,9 +36,9 @@
 (defn change-mapstate
   [this e leaflet-map]
   (let [event-type (-> e .-type keyword) ;; for debug
-        center (-> leaflet-map .getCenter leaflet/latlng->clj)
-        mapstate (map->MapState {:lat (:lat center)
-                                 :lng (:lng center)
+        {:keys [lat lng]} (-> leaflet-map .getCenter leaflet/latlng->clj)
+        mapstate (map->MapState {:lat lat
+                                 :lng lng
                                  :zoom (-> leaflet-map .getZoom)
                                  :bounds (-> leaflet-map .getBounds leaflet/bounds->clj)})]
     (.log js/console (str "[" event-type "]"))
@@ -58,14 +55,8 @@
             marker (leaflet/create-marker lat lng :radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1)]
         (doto marker
           ;; (.bindPopup (str "<b>" line-name "</b><br>" station-name))
-          (.on "click" (fn [e] (let [new-station-info (map->StationInfo {:id id
-                                                                         :name station-name
-                                                                         :line-info
-                                                                         (list
-                                                                          (map->StationLineInfo {:station-id id
-                                                                                                 :line-id line-name
-                                                                                                 :kilotei 10}))
-                                                                         })]
+          (.on "click" (fn [e] (let [station (filter (fn [station] (= (:id station) id)) stations)
+                                     new-station-info (first station)]
                                  (om/transact! this `[(app/update-station-info {:new-station-info ~new-station-info})]))))
           (.on "mouseover" (fn [e] (.setStyle marker (clj->js {:fillColor "#ff0000"}))))
           (.on "mouseout" (fn [e] (.setStyle marker (clj->js {:fillColor "#0000ff"}))))
@@ -91,7 +82,7 @@
 (defui Root
   static om/IQueryParams
   (params [_]
-    {:line-id 25})
+    {:line-id 24})
   static om/IQuery
   (query [this]
     '[:app/title
@@ -116,8 +107,7 @@
                   app/mapstate
                   app/stations
                   app/lines
-                  app/station-info]} (om/props this)
-          [first-line-info & _] (:line-info station-info)]
+                  app/station-info]} (om/props this)]
       (html
        [:div
         [:div {:id "custom-control"
@@ -130,17 +120,16 @@
                                                             :app/title
                                                             :loading?])))
                    :disabled loading?} "update"]
-         [:p (str "zoom: " (:zoom mapstate init-zoom))]
-         [:p (str "station-id:" (:id station-info))]
-         [:p (str "station-name:" (:name station-info))]
-         [:p (str "line-id: " (:line-id first-line-info))]
-         [:input {:value (str (:kilotei first-line-info))
-                  :on-change (fn [e] (let [new-text (-> e .-target .-value)
-                                           [li & _] (:line-info station-info)
-                                           li (list (assoc li :kilotei new-text))
-                                           new-value (assoc station-info :line-info li)]
-                                       (om/transact! this `[(app/update-station-info {:new-station-info ~new-value})])))}]
-         ]
+         (let [{:keys [id station-name line-id line-name kilotei]} station-info]
+           [:div
+            [:p (str "zoom: " (:zoom mapstate init-zoom))]
+            [:p (str "[" id "] " station-name)]
+            [:p (str "[" line-id "] " line-name)]
+            [:input {:value kilotei
+                     :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
+                                          (om/transact! this `[(app/update-station-info {:id ~id
+                                                                                         :line-id ~line-id
+                                                                                         :kilotei ~new-kilotei})])))}]])]
         (leaflet-map-fn {:mapid "map"
                          :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center

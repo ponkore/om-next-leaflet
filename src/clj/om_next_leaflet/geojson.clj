@@ -16,16 +16,21 @@
       (max max-lng lng) (max max-lat lat)])
    [999 999 0 0] coll))
 
+(declare line-name->line-id)
+
 (defn- json->station
   "GeoJson から読み取った元データの駅の情報を内部形式に変換する。"
   [station-info]
   (if (and (= (:type station-info) "Feature")
            (= (get-in station-info [:geometry :type]) "Point"))
-    (let [getprop-fn #(get-in station-info [:properties %])]
+    (let [getprop-fn #(get-in station-info [:properties %])
+          station-name (getprop-fn :N05_011)
+          line-name (getprop-fn :N05_002)]
       (assoc {}
         :id (:id station-info)
-        :station-name (getprop-fn :N05_011) ;; (get-in station-info [:properties :N05_011])
-        :line-name (getprop-fn :N05_002)    ;; (get-in station-info [:properties :N05_002])
+        :station-name station-name
+        :line-name line-name
+        :line-id (line-name->line-id line-name)
         :geometry (get-in station-info [:geometry :coordinates])))
     nil))
 
@@ -115,6 +120,13 @@ see http://www.kiteretsu-so.com/archives/1183 "
       (if (= (count pos) 1)
         (ffirst pos)
         (ffirst pos))))) ;; TODO: 5m以内に複数あれば、最も距離の短いものを正解とすべき
+
+(defn- line-name->line-id
+  [line-name]
+  (->> @lines
+       (filter #(= (:line-name %) line-name))
+       first
+       :id))
 
 ;; (def s-h (->> @stations (filter #(= (:line-name %) "北陸線"))))
 ;;

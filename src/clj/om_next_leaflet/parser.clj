@@ -18,10 +18,7 @@
 
 (defmethod readf :app/stations
   [{:keys [state] :as env} k {:keys [line-id] :as params}]
-  (let [line-name (->> (geojson/get-lines (fn [{:keys [id]}] (= id line-id)))
-                       first
-                       :line-name)
-        stations (geojson/get-stations (fn [m] (= (:line-name m) line-name)))]
+  (let [stations (geojson/get-stations (fn [m] (= (:line-id m) line-id)))]
     {:value stations}))
 
 (defmethod readf :app/lines

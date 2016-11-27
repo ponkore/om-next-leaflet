@@ -20,10 +20,15 @@
    :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
 
 (defmethod mutate 'app/update-station-info
-  [{:keys [state]} _ {:keys [new-station-info]}]
+  [{:keys [state]} _ {:keys [new-station-info station-id line-id kilotei]}]
   {;; :remote true
    :value {:keys [:app/station-info]}
-   :action (fn [] (swap! state assoc :app/station-info new-station-info))})
+   :action (fn []
+             (if new-station-info
+               (swap! state assoc :app/station-info new-station-info)
+               (let [{:keys [app/station-info]} @state
+                     new-station-info (assoc station-info :kilotei kilotei)]
+                 (swap! state assoc :app/station-info new-station-info))))})
 
 (defmulti read om/dispatch)
 
