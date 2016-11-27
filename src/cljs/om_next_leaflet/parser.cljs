@@ -9,11 +9,6 @@
    :value {:keys [:app/title]}
    :action (fn [] (swap! state assoc :app/title new-title))})
 
-(defmethod mutate 'app/loading?
-  [{:keys [state]} _ _]
-  {:value {:keys [:loading?]}
-   :action (fn [] (swap! state assoc :loading? true))})
-
 (defmethod mutate 'app/update-mapstate
   [{:keys [state]} _ {:keys [new-mapstate]}]
   {:value {:keys [:app/mapstate]}
@@ -53,14 +48,6 @@
     (if-let [v (get st k)]
       {:value v :remote true}
       {:remote true})))
-
-(defmethod read :loading?
-  [{:keys [state] :as env} k _]
-  (let [st @state]
-    (let [v (get st :loading? false)]
-      (if v
-        {:value v :remote true}
-        {:remote true}))))
 
 (defmethod read :app/station-info
   [{:keys [state] :as env} k _]

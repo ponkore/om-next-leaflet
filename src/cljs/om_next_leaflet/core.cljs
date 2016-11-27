@@ -86,11 +86,11 @@
   static om/IQuery
   (query [this]
     '[:app/title
-      :loading?
       :app/mapstate
       :app/lines
       (:app/stations {:line-id ?line-id})
-      :app/station-info])
+      :app/station-info
+      :app/kilotei])
   Object
   (componentWillMount [this]
     (.log js/console "will-mount"))
@@ -103,7 +103,6 @@
     (.log js/console "will-unmount"))
   (render [this]
     (let [{:keys [app/title
-                  loading?
                   app/mapstate
                   app/stations
                   app/lines
@@ -119,10 +118,8 @@
                                        (om/transact! this `[(app/update-title {:new-title ~v})])))}]
          [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
                                        (om/transact! this `[(app/update-title {:new-title ~new-title})
-                                                            (app/loading?)
-                                                            :app/title
-                                                            :loading?])))
-                   :disabled loading?} "update"]
+                                                            :app/title])))
+                   } "update"]
          (let [{:keys [id station-name line-id line-name]} station-info]
            [:div
             [:p (str "zoom: " (:zoom mapstate init-zoom))]
