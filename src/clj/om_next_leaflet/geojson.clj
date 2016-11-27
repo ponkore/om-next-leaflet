@@ -31,7 +31,8 @@
         :station-name station-name
         :line-name line-name
         :line-id (line-name->line-id line-name)
-        :geometry (get-in station-info [:geometry :coordinates])))
+        :geometry (get-in station-info [:geometry :coordinates])
+        :kilotei ""))
     nil))
 
 (defn- json->line

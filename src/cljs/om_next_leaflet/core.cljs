@@ -56,7 +56,9 @@
         (doto marker
           ;; (.bindPopup (str "<b>" line-name "</b><br>" station-name))
           (.on "click" (fn [e] (let [station (filter (fn [station] (= (:id station) id)) stations)
-                                     new-station-info (first station)]
+                                     new-station-info (-> station
+                                                          first
+                                                          (dissoc :geometry))]
                                  (om/transact! this `[(app/update-station-info {:new-station-info ~new-station-info})]))))
           (.on "mouseover" (fn [e] (.setStyle marker (clj->js {:fillColor "#ff0000"}))))
           (.on "mouseout" (fn [e] (.setStyle marker (clj->js {:fillColor "#0000ff"}))))
@@ -89,14 +91,10 @@
       :app/mapstate
       :app/lines
       (:app/stations {:line-id ?line-id})
-      :app/station-info
-      :app/kilotei])
+      :app/station-info])
   Object
   (componentWillMount [this]
-    (.log js/console "will-mount")
-    (om/transact! this `[(app/update-kilotei {:id -1
-                                              :line-id -1
-                                              :kilotei ""})]))
+    (.log js/console "will-mount"))
   (componentDidMount [this]
     (.log js/console "did-mount")
     (let [{:keys [app/lines app/stations]} (om/props this)]
@@ -109,8 +107,8 @@
                   app/mapstate
                   app/stations
                   app/lines
-                  app/station-info
-                  app/kilotei]} (om/props this)]
+                  app/station-info]} (om/props this)
+          {:keys [kilotei]} station-info]
       (html
        [:div
         [:div {:id "custom-control"
@@ -130,9 +128,9 @@
             [:p (str "[" line-id "] " line-name "/ [" id "] " station-name)]
             [:input {:value kilotei
                      :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
-                                          (om/transact! this `[(app/update-kilotei {:id ~id
-                                                                                    :line-id ~line-id
-                                                                                    :kilotei ~new-kilotei})])))}]])]
+                                          (om/transact! this `[(app/update-station-info {:id ~id
+                                                                                         :line-id ~line-id
+                                                                                         :kilotei ~new-kilotei})])))}]])]
         (leaflet-map-fn {:mapid "map"
                          :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center

@@ -15,16 +15,17 @@
    :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
 
 (defmethod mutate 'app/update-station-info
-  [{:keys [state]} _ {:keys [new-station-info]}]
+  [{:keys [state]} _ {:keys [new-station-info station-id line-id kilotei]}]
   {;; :remote true
    :value {:keys [:app/station-info]}
-   :action (fn [] (swap! state assoc :app/station-info new-station-info))})
-
-(defmethod mutate 'app/update-kilotei
-  [{:keys [state]} _ {:keys [station-id line-id kilotei]}]
-  {;; :remote true
-   :value {:keys [:app/kilotei]}
-   :action (fn [] (swap! state assoc :app/kilotei kilotei))})
+   :action (fn [] (if new-station-info
+                    (swap! state assoc :app/station-info new-station-info)
+                    (swap! state assoc-in [:app/station-info :kilotei] kilotei))
+             ;; (let [station-info (:app/station-info @state)
+             ;;       station-id (:id station-info)
+             ;;       st-removed (remove #(= (:id station-id)) (:stations @state))]
+             ;;   (swap! state assoc :app/stations (conj st-removed station-info)))
+             )})
 
 (defmulti read om/dispatch)
 
@@ -50,13 +51,6 @@
       {:remote true})))
 
 (defmethod read :app/station-info
-  [{:keys [state] :as env} k _]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v} ;; :remote true
-      {})))
-
-(defmethod read :app/kilotei
   [{:keys [state] :as env} k _]
   (let [st @state]
     (if-let [v (get st k)]
