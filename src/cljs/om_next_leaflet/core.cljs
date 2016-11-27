@@ -4,6 +4,7 @@
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.util :as util]
+            [om-next-leaflet.parser :as parser]
             [om-next-leaflet.leaflet :as leaflet]))
 
 (def init-center [34.6964898 135.4930235])
@@ -26,74 +27,6 @@
 
 (defrecord StationInfo [id name line-info])
 (defrecord StationLineInfo [station-id line-id kilotei])
-
-(defmulti mutate om/dispatch)
-
-(defmethod mutate 'app/update-title
-  [{:keys [state]} _ {:keys [new-title]}]
-  {:remote true
-   :value {:keys [:app/title]}
-   :action (fn [] (swap! state assoc :app/title new-title))})
-
-(defmethod mutate 'app/loading?
-  [{:keys [state]} _ _]
-  {:value {:keys [:loading?]}
-   :action (fn [] (swap! state assoc :loading? true))})
-
-(defmethod mutate 'app/update-mapstate
-  [{:keys [state]} _ {:keys [new-mapstate]}]
-  {:value {:keys [:app/mapstate]}
-   :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
-
-(defmethod mutate 'app/update-station-info
-  [{:keys [state]} _ {:keys [new-station-info]}]
-  {;; :remote true
-   :value {:keys [:app/station-info]}
-   :action (fn [] (swap! state assoc :app/station-info new-station-info))})
-
-(defmulti read om/dispatch)
-
-(defmethod read :app/title
-  [{:keys [state] :as env} k params]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
-
-(defmethod read :app/stations
-  [{:keys [state] :as env} k {:keys [line-id] :as params}]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
-
-(defmethod read :app/lines
-  [{:keys [state] :as env} k params]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
-
-(defmethod read :loading?
-  [{:keys [state] :as env} k _]
-  (let [st @state]
-    (let [v (get st :loading? false)]
-      (if v
-        {:value v :remote true}
-        {:remote true}))))
-
-(defmethod read :app/station-info
-  [{:keys [state] :as env} k _]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v} ;; :remote true
-      {})))
-
-(defmethod read :default ;; :app/mapstate
-  [{:keys [state] :as env} k params]
-  (if-let [v (get @state k)]
-    {:value v}
-    {}))
 
 (defn get-stations-layer
   [this]
@@ -220,7 +153,7 @@
                                           :viewreset        (partial change-mapstate this)
                                           :load             (partial change-mapstate this)}})]))))
 
-(def parser (om/parser {:read read :mutate mutate}))
+(def parser (om/parser {:read parser/read :mutate parser/mutate}))
 
 (def reconciler
   (om/reconciler
