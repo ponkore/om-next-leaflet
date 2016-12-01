@@ -153,6 +153,6 @@
      :parser parser
      :send (util/transit-post "/api")}))
 
-(defn init!
+(defn ^:export init!
   []
   (om/add-root! reconciler Root (gdom/getElement "app")))

@@ -1,7 +1,8 @@
 (ns om-next-leaflet.main
   (:require [com.stuartsierra.component :as component]
             [ring.component.jetty :refer [jetty-server]]
-            [om-next-leaflet.server :refer [system create-database app]]))
+            [om-next-leaflet.server :refer [system create-database app]])
+  (:gen-class))
 
 (declare create-system)
 

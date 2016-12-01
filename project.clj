@@ -20,15 +20,18 @@
                  [com.layerware/hugsql "0.4.7"]
                  [duct/hikaricp-component "0.1.0"]
                  [org.postgresql/postgresql "9.4.1207"]
+                 [cljsjs/leaflet "0.7.7-5"]
+                 [cljsjs/leaflet-draw "0.2.3-2"]
                  [binaryage/devtools "0.8.3"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.clojure/tools.nrepl "0.2.12"]]
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
   :min-lein-version "2.6.1"
-  :source-paths ["src/clj" "src/cljc" "env/dev/clj" "env/prod/clj"]
-  :repl-options {:init-ns user
-                 :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+  :source-paths ["src/clj" "src/cljc" "env/dev/clj"]
+  :resource-paths ["resources" "target/cljsbuild"]
+  :target-path "target/%s/"
+  :repl-options {:init-ns user :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :test-paths ["test/clj"]
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
   :main om-next-leaflet.server
@@ -62,8 +65,10 @@
               :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
               :aot :all
               :uberjar-name "om-next-leaflet.jar"
-              :source-paths ["src/clj" "src/cljc" "env/prod/clj"]}
+              :source-paths ["env/prod/clj"]
+              :resource-paths ["env/prod/resources"]}
              :dev
              {:dependencies [[figwheel-sidecar "0.5.8"]]
-              :plugins [[lein-figwheel "0.5.8"]]}}
+              :plugins [[lein-figwheel "0.5.8"]]
+              :source-paths ["env/dev/clj"]}}
 )
