@@ -21,7 +21,7 @@
 
 (defn generate-response [data & [status]]
   {:status  (or status 200)
-   :headers {"Content-Type" "application/transit+json"}
+   :headers {"Content-Type" "application/transit+json; charset=UTF-8"}
    :body    data})
 
 (defn api [req]
@@ -29,9 +29,9 @@
    ((om/parser {:read parser/readf :mutate parser/mutatef})
     {:state (:state req) :db (:db req)} (:remote (:transit-params req)))))
 
-(defn index [req]
-  (assoc (resource-response (str "html/index.html") {:root "public"})
-         :headers {"Content-Type" "text/html"}))
+;; (defn index [req]
+;;   (assoc (resource-response "index.html" {:root "public"})
+;;          :headers {"Content-Type" "text/html; charset=UTF-8"}))
 
 (def state (atom {:app/title "initial server title"}))
 
@@ -66,36 +66,16 @@
 
 (defrecord Logger [config]
   component/Lifecycle
-  (start [this]
+  (start [component]
     (timbre/merge-config! {:timestamp-opts {:pattern "yyyy/MM/dd HH:mm:ss,SSS"
-                                            :timezone (java.util.TimeZone/getDefault)}}))
-  (stop [this]
+                                            :timezone (java.util.TimeZone/getDefault)}})
+    (info "logger started.")
+    component)
+  (stop [component]
     ;; do nothing
-    ))
+    (info "logger stopped.")
+    component))
 
 (defn create-logger
   [config]
   (map->Logger config))
-
-;; user=> (>pprint (timbre/merge-config! {}))
-;; {:level :debug,
-;;  :ns-whitelist [],
-;;  :ns-blacklist [],
-;;  :middleware [],
-;;  :timestamp-opts
-;;  {:pattern "yyyy/MM/dd HH:mm:ss,SSS",
-;;   :locale :jvm-default,
-;;   :timezone
-;;   #object[sun.util.calendar.ZoneInfo 0x9df0f6 "sun.util.calendar.ZoneInfo[id=\"GMT+09:00\",offset=32400000,dstSavings=0,useDaylight=false,transitions=0,lastRule=null]"]},
-;;  :output-fn
-;;  #object[taoensso.timbre$default_output_fn 0x8a313c "taoensso.timbre$default_output_fn@8a313c"],
-;;  :appenders
-;;  {:println
-;;   {:enabled? true,
-;;    :async? false,
-;;    :min-level nil,
-;;    :rate-limit nil,
-;;    :output-fn :inherit,
-;;    :fn
-;;    #object[taoensso.timbre.appenders.core$println_appender$fn__27461 0x6d9a43 "taoensso.timbre.appenders.core$println_appender$fn__27461@6d9a43"]}}}
-;;

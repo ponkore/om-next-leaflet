@@ -1,6 +1,7 @@
 (ns om-next-leaflet.main
   (:require [com.stuartsierra.component :as component]
             [ring.component.jetty :refer [jetty-server]]
+            [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
             [om-next-leaflet.server :refer [system create-database app]])
   (:gen-class))
 
@@ -15,12 +16,13 @@
 
 (defn stop []
   (alter-var-root #'system
-    (fn [s] (when s (component/stop s)))))
+    (fn [s] (when s (component/stop s))))
+  (shutdown-agents))
 
-;; TODO add-shutdown-hook
 (defn -main [& args]
   (init)
-  (start))
+  (start)
+  (.addShutdownHook (Runtime/getRuntime) (Thread. stop)))
 
 (defn create-system
   [& config-options]

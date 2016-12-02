@@ -1,5 +1,6 @@
 (ns user
   (:require [com.stuartsierra.component :as component]
+            [ring.component.jetty :refer [jetty-server]]
             [clojure.tools.namespace.repl :refer [refresh]]
             [taoensso.timbre :as timbre]
             [figwheel-sidecar.repl-api :as ra]
@@ -34,25 +35,26 @@
 
 (defrecord Figwheel [server]
   component/Lifecycle
-  (start [this]
-    (if server
-      this
-      (assoc this :server (ra/start-figwheel!))))
-  (stop [this]
-    (if-not server
-      this
+  (start [component]
+    (if (:server component)
+      component
+      (assoc component :server (ra/start-figwheel!))))
+  (stop [component]
+    (if-let [server (:server component)]
       (do
         (ra/stop-figwheel!)
-        (assoc this :server nil)))))
+        (dissoc component :server)))))
 
 (defn create-system
   [& config-options]
   (let [{:keys [port]} config-options
         port (or port 3000)]
     (component/system-map
-     ;; :database (create-database)
+     :database (create-database)
      :logger (create-logger {})
      :http-server (component/using
-                   (map->Figwheel {})
-                   [:logger ;; :database
-                    ]))))
+                   (jetty-server {:app {:handler app} :port port})
+                   [:logger :database])
+     :figwheel (component/using
+                (map->Figwheel {})
+                [:logger :database :http-server]))))

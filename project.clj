@@ -28,24 +28,16 @@
                  [cljsjs/leaflet-draw "0.2.3-2"]]
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
-  ;; TODO:
-  ;;   :scope provided
-  ;;   :clean-targets
-  ;;   :target-path
-  ;;   :figwheel -> remove :ring-handler, and add standalone server
-  ;;     add standalone server using :ring-handler om-next-leaflet.server/app
-  ;;   logging
   :min-lein-version "2.6.1"
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
   :target-path "target/%s/"
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
-  :figwheel {:http-server-root "public"       ;; serve static assets from resources/public/
+  :figwheel {:http-server-root "public"
              :css-dirs ["resources/public/css"]
              :server-logfile "log/figwheel.log"
-             :ring-handler om-next-leaflet.server/app
              :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  :main om-next-leaflet.server
+  :main om-next-leaflet.main
   :profiles
   {:dev [:project/dev :profiles/dev]
    :test [:project/dev :project/test :profiles/test]
@@ -70,7 +62,8 @@
                                 [com.cemerick/piggieback "0.2.1"]
                                 [doo "0.1.7"]]
                  :plugins [[lein-figwheel "0.5.8"]
-                           [lein-doo "0.1.7"]]
+                           [lein-doo "0.1.7"]
+                           [org.clojure/clojurescript "1.9.293"]]
                  :source-paths ["env/dev/clj" "test/clj"]
                  :resource-paths ["env/dev/resources"]
                  :repl-options {:init-ns user}
@@ -85,7 +78,6 @@
                      :output-dir "resources/public/js"
                      :source-map true
                      :source-map-timestamp true
-                     :verbose true
                      :optimizations :none
                      :pretty-print true}}}}
                  :doo {:build "test"}}

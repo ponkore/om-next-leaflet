@@ -23,12 +23,11 @@
   bottom: 40px;
   background: #ffffff;
   font-size: 12px;
-  box-shadow: 1px 1px 5px rgba(0,0,0,0,4);
+  box-shadow: 1px 1px 5px rgba(0,0,0,4);
   border-radius: 5px;
   padding: 6px 10px 6px 6px;
   color: #333;
 }
 html, body, #map {
   height: 500px;
-  // height: 100%;
 }
