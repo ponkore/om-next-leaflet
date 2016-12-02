@@ -86,7 +86,8 @@
                      :source-map-timestamp true
                      :verbose true
                      :optimizations :none
-                     :pretty-print true}}}}}
+                     :pretty-print true}}}}
+                 :doo {:build "test"}}
    :project/test {:resource-paths ["env/test/resources"]
                   :cljsbuild
                   {:builds
