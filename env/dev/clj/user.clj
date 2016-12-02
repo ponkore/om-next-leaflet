@@ -50,8 +50,9 @@
   (let [{:keys [port]} config-options
         port (or port 3000)]
     (component/system-map
-     :database (create-database)
+     ;; :database (create-database)
      :logger (create-logger {})
      :http-server (component/using
                    (map->Figwheel {})
-                   [:logger :database]))))
+                   [:logger ;; :database
+                    ]))))
