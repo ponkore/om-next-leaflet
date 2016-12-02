@@ -1,7 +1,7 @@
 (defproject om-next-leaflet "0.1.0-SNAPSHOT"
   :description "My first Om program!"
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.293"]
+                 [org.clojure/clojurescript "1.9.293" :scope "provided"]
                  ;; component, environment, logging
                  [environ "1.1.0"]
                  [com.stuartsierra/component "0.3.1"]
@@ -28,22 +28,26 @@
                  [cljsjs/leaflet-draw "0.2.3-2"]]
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
+  ;; TODO:
+  ;;   :scope provided
+  ;;   :clean-targets
+  ;;   :target-path
+  ;;   :figwheel -> remove :ring-handler, and add standalone server
+  ;;     add standalone server using :ring-handler om-next-leaflet.server/app
+  ;;   logging
   :min-lein-version "2.6.1"
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
   :target-path "target/%s/"
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
   :figwheel {:http-server-root "public"       ;; serve static assets from resources/public/
-             :server-port 3449                ;; default
-             :server-ip "127.0.0.1"           ;; default
              :css-dirs ["resources/public/css"]
-             :ring-handler om-next-leaflet.server/app
              :server-logfile "log/figwheel.log"
              :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :main om-next-leaflet.server
   :profiles
   {:dev [:project/dev :profiles/dev]
-   :test [:project/test :profiles/test]
+   :test [:project/dev :project/test :profiles/test]
    :uberjar {:omit-source true
              :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
              :aot :all
@@ -63,8 +67,9 @@
    :project/dev {:dependencies [[figwheel-sidecar "0.5.8"]
                                 [binaryage/devtools "0.8.3"]
                                 [com.cemerick/piggieback "0.2.1"]
-                                [org.clojure/tools.nrepl "0.2.12"]]
-                 :plugins [[lein-figwheel "0.5.8"]]
+                                [doo "0.1.7"]]
+                 :plugins [[lein-figwheel "0.5.8"]
+                           [lein-doo "0.1.7"]]
                  :source-paths ["env/dev/clj" "test/clj"]
                  :resource-paths ["env/dev/resources"]
                  :repl-options {:init-ns user}
@@ -82,6 +87,15 @@
                      :verbose true
                      :optimizations :none
                      :pretty-print true}}}}}
-   :project/test {}
+   :project/test {:resource-paths ["env/test/resources"]
+                  :cljsbuild
+                  {:builds
+                   {:test
+                    {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
+                     :compiler
+                     {:output-to "target/test.js"
+                      :main "om-next-leaflet.doo-runner"
+                      :optimizations :whitespace
+                      :pretty-print true}}}}}
    :profiles/dev {}
    :profiles/test {}})
