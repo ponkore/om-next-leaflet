@@ -43,6 +43,7 @@
   :figwheel {:http-server-root "public"       ;; serve static assets from resources/public/
              :css-dirs ["resources/public/css"]
              :server-logfile "log/figwheel.log"
+             :ring-handler om-next-leaflet.server/app
              :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
   :main om-next-leaflet.server
   :profiles
