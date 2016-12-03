@@ -35,8 +35,7 @@
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
   :figwheel {:http-server-root "public"
              :css-dirs ["resources/public/css"]
-             :server-logfile "log/figwheel.log"
-             :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+             :server-logfile "log/figwheel.log"}
   :main om-next-leaflet.main
   :profiles
   {:dev [:project/dev :profiles/dev]
@@ -66,7 +65,8 @@
                            [org.clojure/clojurescript "1.9.293"]]
                  :source-paths ["env/dev/clj" "test/clj"]
                  :resource-paths ["env/dev/resources"]
-                 :repl-options {:init-ns user}
+                 :repl-options {:init-ns user
+                                :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                  :cljsbuild
                  {:builds
                   {:app
@@ -78,6 +78,7 @@
                      :output-dir "resources/public/js"
                      :source-map true
                      :source-map-timestamp true
+                     :preloads [devtools.preload]
                      :optimizations :none
                      :pretty-print true}}}}
                  :doo {:build "test"}}
