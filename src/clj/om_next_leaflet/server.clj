@@ -29,9 +29,9 @@
    ((om/parser {:read parser/readf :mutate parser/mutatef})
     {:state (:state req) :db (:db req)} (:remote (:transit-params req)))))
 
-;; (defn index [req]
-;;   (assoc (resource-response "index.html" {:root "public"})
-;;          :headers {"Content-Type" "text/html; charset=UTF-8"}))
+(defn index [req]
+  (assoc (resource-response "index.html" {:root "public"})
+         :headers {"Content-Type" "text/html; charset=UTF-8"}))
 
 (def state (atom {:app/title "initial server title"}))
 
@@ -39,7 +39,7 @@
   (let [match (bidi/match-route routes (:uri req)
                                 :request-method (:request-method req))]
     (case (:handler match)
-      :index nil
+      :index (index req)
       :api (api (assoc req :state state))
       nil)))
 

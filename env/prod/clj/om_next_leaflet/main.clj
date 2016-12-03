@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [ring.component.jetty :refer [jetty-server]]
             [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
-            [om-next-leaflet.server :refer [system create-database app]])
+            [om-next-leaflet.server :refer [system create-database app create-logger]])
   (:gen-class))
 
 (declare create-system)
@@ -30,6 +30,7 @@
         port (or port 3000)]
     (component/system-map
      :database (create-database)
+     :logger (create-logger {})
      :http-server (component/using
-                   (jetty-server {:app app :port port})
-                   [:database]))))
+                   (jetty-server {:app {:handler app} :port port})
+                   [:logger :database]))))

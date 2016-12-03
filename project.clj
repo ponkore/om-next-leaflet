@@ -23,9 +23,7 @@
                    com.cognitect/transit-cljs]]
                  ;; UI layer dependencies
                  [org.omcljs/om "1.0.0-alpha47"]
-                 [sablono "0.7.6"]
-                 [cljsjs/leaflet "0.7.7-5"]
-                 [cljsjs/leaflet-draw "0.2.3-2"]]
+                 [sablono "0.7.6"]]
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-environ "1.1.0"]]
   :min-lein-version "2.6.1"
@@ -51,7 +49,7 @@
               {:min
                {:source-paths ["src/cljc" "src/cljs" "env/prod/cljs"]
                 :compiler
-                {:output-to "target/cljsbuild/public/js/app.js"
+                {:output-to "target/cljsbuild/public/js/main.js"
                  :externs ["react/externs/react.js"]
                  :optimizations :advanced
                  :pretty-print false
