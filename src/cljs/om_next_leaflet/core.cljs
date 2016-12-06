@@ -54,7 +54,7 @@
       (let [[lng lat] geometry
             marker (leaflet/create-marker lat lng :radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1)]
         (doto marker
-          ;; (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+          (.bindPopup (str "<b>" line-name "</b><br>" station-name))
           (.on "click" (fn [e] (let [station (filter (fn [station] (= (:id station) id)) stations)
                                      new-station-info (-> station
                                                           first
