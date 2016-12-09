@@ -11,12 +11,13 @@
                  [ring/ring "1.5.0"]
                  [ring-transit "0.1.6"]
                  [ring-jetty-component "0.3.1"]
+                 [ring-logger-timbre "0.7.5"]
                  ;; database related dependencies
                  [com.layerware/hugsql "0.4.7"]
                  [duct/hikaricp-component "0.1.0"]
-                 [org.postgresql/postgresql "9.4.1207"]
+                 [org.postgresql/postgresql "9.4.1212"]
                  ;; http data transmission related dependencies
-                 [com.cognitect/transit-clj "0.8.293"]
+                 [com.cognitect/transit-clj "0.8.295"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [cljs-http "0.1.42" :exclusions
                   [org.clojure/clojure org.clojure/clojurescript

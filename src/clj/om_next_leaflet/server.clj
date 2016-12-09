@@ -2,9 +2,11 @@
   (:require [com.stuartsierra.component :as component]
             [environ.core :refer [env]]
             [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
+            [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [duct.component.hikaricp :as hcp]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response file-response resource-response]]
+            [ring.logger.timbre :refer [wrap-with-logger]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.transit :refer [wrap-transit-response wrap-transit-params]]
             [om-next-leaflet.parser :as parser]
@@ -56,7 +58,8 @@
        (wrap-resource "public")
        wrap-reload
        wrap-transit-response
-       wrap-transit-params)
+       wrap-transit-params
+       wrap-with-logger)
    system))
 
 (defn create-database
@@ -69,6 +72,17 @@
   (start [component]
     (timbre/merge-config! {:timestamp-opts {:pattern "yyyy/MM/dd HH:mm:ss,SSS"
                                             :timezone (java.util.TimeZone/getDefault)}})
+    (timbre/merge-config!
+     {:appenders
+      {:rotor
+       (rotor/rotor-appender
+        {:path "log/om-next-leaflet.log"
+         :max-size (* 512 1024)
+         :backlog 10})}})
+    (timbre/merge-config!
+     {:appenders
+      {:println
+       {:enabled? true}}})
     (info "logger started.")
     component)
   (stop [component]
