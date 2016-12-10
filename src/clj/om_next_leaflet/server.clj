@@ -29,7 +29,7 @@
 (defn api [req]
   (generate-response
    ((om/parser {:read parser/readf :mutate parser/mutatef})
-    {:state (:state req) :db (:db req)} (:remote (:transit-params req)))))
+    {:state (:state req) :db (:database system)} (:remote (:transit-params req)))))
 
 (defn index [req]
   (assoc (resource-response "index.html" {:root "public"})
@@ -45,22 +45,13 @@
       :api (api (assoc req :state state))
       nil)))
 
-(defn wrap-system
-  [handler system]
-  (fn [req]
-    (handler (assoc req
-                    :db (:database system)
-                    :system system))))
-
 (def app
-  (wrap-system
-   (-> handler
-       (wrap-resource "public")
-       wrap-reload
-       wrap-transit-response
-       wrap-transit-params
-       wrap-with-logger)
-   system))
+  (-> handler
+      (wrap-resource "public")
+      wrap-reload
+      wrap-transit-response
+      wrap-transit-params
+      wrap-with-logger))
 
 (defn create-database
   []
