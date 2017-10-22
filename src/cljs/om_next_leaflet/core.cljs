@@ -1,14 +1,27 @@
 (ns om-next-leaflet.core
-  (:require [goog.dom :as gdom]
-            [om.next :as om :refer-macros [defui]]
+  (:require [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
-            [om-next-leaflet.util :as util]
             [om-next-leaflet.parser :as parser]
+            [om-next-leaflet.util :as util]
             [om-next-leaflet.leaflet :as leaflet]))
+
+(enable-console-print!)
+
+(defonce app-state (atom {}))
+
+(declare reconciler Root)
+
+(defn render []
+  (om/add-root! reconciler Root (js/document.getElementById "app")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def init-center [34.6964898 135.4930235])
 (def init-zoom 12)
+(defrecord MapState [lat lng zoom bounds])
 
 (def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
                  "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -22,8 +35,6 @@
 (def std-layer (leaflet/create-tilelayer "地理院地図"
                  "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
                  "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"))
-
-(defrecord MapState [lat lng zoom bounds])
 
 (defn get-stations-layer
   [this]
@@ -113,11 +124,11 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         #_[:input {:ref "title"
-                  :value title
+         [:input {:ref "title"
+                  :value (if (nil? title) "" title)
                   :on-change (fn [e] (let [v (-> e .-target .-value)]
                                        (om/transact! this `[(app/update-title {:new-title ~v})])))}]
-         #_[:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
+         [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
                                        (om/transact! this `[(app/update-title {:new-title ~new-title})
                                                             :app/title])))
                      } "update"]
@@ -126,7 +137,7 @@
            [:div
             [:p (str "zoom: " (:zoom mapstate init-zoom))]
             [:p (str "[" line-id "] " line-name "/ [" id "] " station-name)]
-            [:input {:value kilotei
+            [:input {:value (if (nil? kilotei) "" kilotei)
                      :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
                                           (om/transact! this `[(app/update-station-info {:id ~id
                                                                                          :line-id ~line-id
@@ -147,12 +158,8 @@
 
 (def reconciler
   (om/reconciler
-    {:state (atom {})
+    {:state app-state
      :normalize true
      ;; :merge-tree (fn [a b] (println "|merge" a b) (merge a b))
      :parser parser
      :send (util/transit-post "/api")}))
-
-(defn ^:export init!
-  []
-  (om/add-root! reconciler Root (gdom/getElement "app")))

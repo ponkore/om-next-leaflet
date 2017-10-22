@@ -1,0 +1,6 @@
+* リリースビルド (clojure.java.shell で class not found exception ??? aot?)
+* om.next remote やめてみる？(backend を go で書いてみる...)
+* UI 設計
+* エラー時の処理の設計
+* js の warning 対処（leaflet.draw の deprecation）
+* leaflet draw での描画後オブジェクトの「移動」で死ぬ（変形は問題なし）

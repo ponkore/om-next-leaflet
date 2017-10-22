@@ -1,8 +1,6 @@
 (ns om-next-leaflet.core-test
-  (:require [cljs.test :refer-macros [is are deftest testing use-fixtures]]
-            [reagent.core :as reagent :refer [atom]]
-            [om-next-leaflet.core :as rc]))
+  (:require-macros [cljs.test :refer (is deftest testing)])
+  (:require [cljs.test]))
 
-(deftest test-home
-  (is (= true true)))
-
+(deftest example-passing-test
+  (is (= 1 1)))

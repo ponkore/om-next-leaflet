@@ -1,4 +1,0 @@
-{:profiles/dev  {:env {:database-url "jdbc:postgresql://localhost:5432/dvdrental"
-                 :is-dev? "true"}}
- :profiles/test {:env {:database-url "jdbc:postgresql://localhost:5432/dvdrental"
-                 :is-dev? "false"}}}

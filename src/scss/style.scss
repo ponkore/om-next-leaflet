@@ -1,23 +1,26 @@
+@charset "UTF-8";
+
 h1 {
-  text-decoration: underline; }
-
+  text-decoration: underline;
+}
+//
 .container {
-  position: relative;
-  max-width: 100%;
-  width: 100%; }
-
+    position: relative;
+    max-width: 100%;
+    width: 100%;
+}
 .navbar-collapse {
   display: block !important;
   height: auto !important;
   padding-bottom: 0;
-  overflow: visible !important; }
-
+  overflow: visible !important;
+}
 .navbar-toggle {
-  display: none; }
-
+  display: none;
+}
 .navbar-brand {
-  margin-left: -15px; }
-
+  margin-left: -15px;
+}
 #custom-control {
   position: absolute;
   top: 18px;
@@ -26,13 +29,14 @@ h1 {
   bottom: 140px;
   background: #ffffff;
   font-size: 12px;
-  box-shadow: 1px 1px 5px black;
+  box-shadow: 1px 1px 5px rgba(0,0,0,4);
   border-radius: 5px;
   padding: 6px 10px 6px 6px;
-  color: #333; }
-
+  color: #333;
+}
 html, body {
-  height: 500px; }
-
+  height: 500px;
+}
 #map {
-  height: 600px; }
+  height: 600px;
+}

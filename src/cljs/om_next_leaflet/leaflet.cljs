@@ -1,6 +1,8 @@
 (ns om-next-leaflet.leaflet
   (:require [om.next :as om :refer-macros [defui]]
-            [sablono.core :as html :refer-macros [html]]))
+            [sablono.core :as html :refer-macros [html]]
+            [cljsjs.leaflet]
+            [cljsjs.leaflet-draw]))
 
 (defn create-tilelayer
   [title url attribution & {:keys [minZoom maxZoom] :as opts}]
@@ -39,7 +41,10 @@
 
 (defui Leaflet
   Object
+  (componentWillMount [this]
+    (.log js/console "will-mount @leaflet.cljs"))
   (componentDidMount [this]
+    (.log js/console "did-mount @leaflet.cljs")
     (let [{:keys [mapid center zoom base-layers event-handlers]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)

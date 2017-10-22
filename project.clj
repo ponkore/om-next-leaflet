@@ -1,95 +1,136 @@
 (defproject om-next-leaflet "0.1.0-SNAPSHOT"
-  :description "My first Om program!"
+  :description "FIXME: write description"
+  :url "http://example.com/FIXME"
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
+
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.293" :scope "provided"]
-                 ;; component, environment, logging
-                 [environ "1.1.0"]
-                 [com.stuartsierra/component "0.3.1"]
-                 [com.taoensso/timbre "4.7.4"]
-                 ;; http server related dependencies
-                 [bidi "2.0.14"]
-                 [ring/ring "1.5.0"]
+                 [org.clojure/clojurescript "1.9.946" :scope "provided"]
+                 [com.cognitect/transit-clj "0.8.300"]
+                 [com.cognitect/transit-cljs "0.8.243"]
+                 [ring "1.6.2"]
                  [ring-transit "0.1.6"]
-                 [ring-jetty-component "0.3.1"]
-                 [ring-logger-timbre "0.7.5"]
-                 ;; database related dependencies
-                 [com.layerware/hugsql "0.4.7"]
-                 [duct/hikaricp-component "0.1.0"]
-                 [org.postgresql/postgresql "9.4.1212"]
-                 ;; http data transmission related dependencies
-                 [com.cognitect/transit-clj "0.8.295"]
-                 [com.cognitect/transit-cljs "0.8.239"]
-                 [cljs-http "0.1.42" :exclusions
-                  [org.clojure/clojure org.clojure/clojurescript
-                   com.cognitect/transit-cljs]]
-                 ;; UI layer dependencies
-                 [org.omcljs/om "1.0.0-alpha47"]
-                 [sablono "0.7.6"]]
-  :plugins [[lein-cljsbuild "1.1.4"]
-            [lein-environ "1.1.0"]]
+                 [ring/ring-defaults "0.3.1"]
+                 [bk/ring-gzip "0.2.1"]
+                 [radicalzephyr/ring.middleware.logger "0.6.0"]
+                 [com.taoensso/timbre "4.10.0"]
+                 [compojure "1.6.0"]
+                 [environ "1.1.0"]
+                 [com.stuartsierra/component "0.3.2"]
+                 [org.danielsz/system "0.4.0"]
+                 [org.clojure/tools.namespace "0.2.11"]
+                 [org.omcljs/om "1.0.0-alpha48"]
+                 [cljsjs/leaflet "1.2.0-0"]
+                 [cljsjs/leaflet-draw "0.4.12-0"]
+                 [sablono "0.8.1"]
+                 [binaryage/dirac "1.2.17"]]
+
+  :plugins [[lein-cljsbuild "1.1.6"]
+            [lein-environ "1.1.0"]
+            [lein-sassc "0.10.4"]
+            [lein-auto "0.1.3"]]
+
   :min-lein-version "2.6.1"
-  :source-paths ["src/clj" "src/cljc"]
-  :resource-paths ["resources" "target/cljsbuild"]
-  :target-path "target/%s/"
+
+  :jvm-opts ["--add-modules" "java.xml.bind"]
+
+  :source-paths ["src/clj" "src/cljs" "src/cljc"]
+
+  :test-paths ["test/clj" "test/cljc"]
+
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
-  :figwheel {:http-server-root "public"
-             :css-dirs ["resources/public/css"]
+
+  :uberjar-name "om-next-leaflet.jar"
+
+  ;; Use `lein run` if you just want to start a HTTP server, without figwheel
+  :main om-next-leaflet.application
+
+  ;; nREPL by default starts in the :main namespace, we want to start in `user`
+  ;; because that's where our development helper functions like (go) and
+  ;; (browser-repl) live.
+  :repl-options {:init-ns user}
+
+  :cljsbuild {:builds
+              [{:id "app"
+                :source-paths ["src/cljs" "src/cljc" "dev"]
+
+                :figwheel {:on-jsload "om-next-leaflet.system/reset"}
+
+                :compiler {:main cljs.user
+                           :asset-path "js/compiled/out"
+                           :output-to "resources/public/js/compiled/om_next_leaflet.js"
+                           :output-dir "resources/public/js/compiled/out"
+                           :source-map-timestamp true}}
+
+               {:id "test"
+                :source-paths ["src/cljs" "test/cljs" "src/cljc" "test/cljc"]
+                :compiler {:output-to "resources/public/js/compiled/testable.js"
+                           :main om-next-leaflet.test-runner
+                           :optimizations :none}}
+
+               {:id "min"
+                :source-paths ["src/cljs" "src/cljc"]
+                :jar true
+                :compiler {:main om-next-leaflet.system
+                           :output-to "resources/public/js/compiled/om_next_leaflet.js"
+                           :output-dir "target"
+                           :source-map-timestamp true
+                           :optimizations :advanced
+                           :pretty-print false}}]}
+
+  ;; When running figwheel from nREPL, figwheel will read this configuration
+  ;; stanza, but it will read it without passing through leiningen's profile
+  ;; merging. So don't put a :figwheel section under the :dev profile, it will
+  ;; not be picked up, instead configure figwheel here on the top level.
+
+  :figwheel {;; :http-server-root "public"       ;; serve static assets from resources/public/
+             ;; :server-port 3449                ;; default
+             ;; :server-ip "127.0.0.1"           ;; default
+             :css-dirs ["resources/public/css"]  ;; watch and update CSS
+
+             ;; Start an nREPL server into the running figwheel process. We
+             ;; don't do this, instead we do the opposite, running figwheel from
+             ;; an nREPL process, see
+             ;; https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl
+             ;; :nrepl-port 7888
+
+             ;; To be able to open files in your editor from the heads up display
+             ;; you will need to put a script on your path.
+             ;; that script will have to take a file path and a line number
+             ;; ie. in  ~/bin/myfile-opener
+             ;; #! /bin/sh
+             ;; emacsclient -n +$2 $1
+             ;;
+             ;; :open-file-command "myfile-opener"
+
              :server-logfile "log/figwheel.log"}
-  :main om-next-leaflet.main
-  :profiles
-  {:dev [:project/dev :profiles/dev]
-   :test [:project/dev :project/test :profiles/test]
-   :uberjar {:omit-source true
-             :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
-             :aot :all
-             :uberjar-name "om-next-leaflet.jar"
-             :source-paths ["env/prod/clj"]
-             :resource-paths ["env/prod/resources"]
-             :cljsbuild
-             {:builds
-              {:min
-               {:source-paths ["src/cljc" "src/cljs" "env/prod/cljs"]
-                :compiler
-                {:output-to "target/cljsbuild/public/js/main.js"
-                 :externs ["react/externs/react.js"]
-                 :optimizations :advanced
-                 :pretty-print false
-                 :closure-warnings {:externs-validation :off :non-standard-jsdoc :off}}}}}}
-   :project/dev {:dependencies [[figwheel-sidecar "0.5.8"]
-                                [binaryage/devtools "0.8.3"]
-                                [com.cemerick/piggieback "0.2.1"]
-                                [doo "0.1.7"]]
-                 :plugins [[lein-figwheel "0.5.8"]
-                           [lein-doo "0.1.7"]
-                           [org.clojure/clojurescript "1.9.293"]]
-                 :source-paths ["env/dev/clj" "test/clj"]
-                 :resource-paths ["env/dev/resources"]
-                 :repl-options {:init-ns user
-                                :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-                 :cljsbuild
-                 {:builds
-                  {:app
-                   {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-                    :compiler
-                    {:main "om-next-leaflet.dev"
-                     :asset-path "js"
-                     :output-to "resources/public/js/main.js"
-                     :output-dir "resources/public/js"
-                     :source-map true
-                     :source-map-timestamp true
-                     :preloads [devtools.preload]
-                     :optimizations :none
-                     :pretty-print true}}}}
-                 :doo {:build "test"}}
-   :project/test {:resource-paths ["env/test/resources"]
-                  :cljsbuild
-                  {:builds
-                   {:test
-                    {:source-paths ["src/cljc" "src/cljs" "test/cljs"]
-                     :compiler
-                     {:output-to "target/test.js"
-                      :main "om-next-leaflet.doo-runner"
-                      :optimizations :whitespace
-                      :pretty-print true}}}}}
-   :profiles/dev {}
-   :profiles/test {}})
+
+  :doo {:build "test"}
+
+  :sassc [{:src "src/scss/style.scss"
+           :output-to "resources/public/css/style.css"}]
+
+  :auto {"sassc" {:file-pattern  #"\.(scss)$"
+                  :paths ["src/scss"]}}
+
+  :profiles {:dev
+             {:dependencies [[figwheel "0.5.14"]
+                             [figwheel-sidecar "0.5.14"]
+                             [com.cemerick/piggieback "0.2.2"]
+                             [org.clojure/tools.nrepl "0.2.13"]
+                             [lein-doo "0.1.8"]
+                             [reloaded.repl "0.2.4"]]
+
+              :plugins [[lein-figwheel "0.5.11"]
+                        [lein-doo "0.1.8"]]
+
+              :source-paths ["dev"]
+              :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
+
+             :uberjar
+             {:source-paths ^:replace ["src/clj" "src/cljc"]
+              :prep-tasks ["compile"
+                           ["cljsbuild" "once" "min"]]
+              :hooks [leiningen.sassc]
+              :omit-source true
+              :aot :all}})
