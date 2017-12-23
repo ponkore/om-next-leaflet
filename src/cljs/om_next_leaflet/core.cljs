@@ -63,6 +63,18 @@
 ;;                                    (dissoc :geometry))]
 ;;           (om/transact! this `[(app/update-station-info {:new-station-info ~new-station-info})])))
 
+(defmulti event-handler (fn [k this e] k))
+
+(defmethod event-handler :root/input-on-change
+  [_ this e]
+  (let [v (-> e .-target .-value)]
+    (om/transact! this `[(app/update-title {:new-title ~v})])))
+
+(defmethod event-handler :root/button-click
+  [_ this e]
+  (let [new-title (.-value (dom/node this "title"))]
+    (om/transact! this `[(app/update-title {:new-title ~new-title})])))
+
 (defui Root
   static om/IQueryParams
   (params [_]
@@ -98,12 +110,10 @@
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
          [:input {:ref "title"
                   :value (if (nil? title) "" title)
-                  :on-change (fn [e] (let [v (-> e .-target .-value)]
-                                       (om/transact! this `[(app/update-title {:new-title ~v})])))}]
-         [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
-                                       (om/transact! this `[(app/update-title {:new-title ~new-title})])))
-                     } "update"]
-         (into [] (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
+                  :on-change (fn [e] (event-handler :root/input-on-change this e))}]
+         [:button {:on-click (fn [e] (event-handler :root/button-click this e))}
+          "update"]
+         (vec (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
          [:div
           [:p (str "zoom: " (:zoom mapstate init-zoom))]]]
         (leaflet-map-fn {:mapid "map"

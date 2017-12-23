@@ -1,6 +1,13 @@
+* ReST API化
+  /api/v1/
+    stations/
+    lines/
+    editor/lines/
+           stations/
+ まずは /stations, /lines のサーバ側を実装してみる
+ om.next の remote 側を廃止
+
+* 新規敷設の線と、既存の線とで色を変える
+
 * リリースビルド (clojure.java.shell で class not found exception ??? aot?)
-* om.next remote やめてみる？(backend を go で書いてみる...)
 * UI 設計
-* エラー時の処理の設計
-* js の warning 対処（leaflet.draw の deprecation）
-* leaflet draw での描画後オブジェクトの「移動」で死ぬ（変形は問題なし）
