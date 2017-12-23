@@ -4,11 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.946" :scope "provided"]
                  [com.cognitect/transit-clj "0.8.300"]
                  [com.cognitect/transit-cljs "0.8.243"]
-                 [ring "1.6.2"]
+                 [ring "1.6.3"]
                  [ring-transit "0.1.6"]
                  [ring/ring-defaults "0.3.1"]
                  [bk/ring-gzip "0.2.1"]
@@ -17,13 +17,13 @@
                  [compojure "1.6.0"]
                  [environ "1.1.0"]
                  [com.stuartsierra/component "0.3.2"]
-                 [org.danielsz/system "0.4.0"]
+                 [org.danielsz/system "0.4.1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [org.omcljs/om "1.0.0-alpha48"]
                  [cljsjs/leaflet "1.2.0-0"]
                  [cljsjs/leaflet-draw "0.4.12-0"]
                  [sablono "0.8.1"]
-                 [binaryage/dirac "1.2.17"]]
+                 [binaryage/dirac "1.2.23"]]
 
   :plugins [[lein-cljsbuild "1.1.6"]
             [lein-environ "1.1.0"]
