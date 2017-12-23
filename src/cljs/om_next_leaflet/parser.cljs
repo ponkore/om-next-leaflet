@@ -5,8 +5,7 @@
 
 (defmethod mutate 'app/update-title
   [{:keys [state]} _ {:keys [new-title]}]
-  {:remote true
-   :value {:keys [:app/title]}
+  {:value {:keys [:app/title]}
    :action (fn [] (swap! state assoc :app/title new-title))})
 
 (defmethod mutate 'app/update-mapstate
@@ -14,27 +13,14 @@
   {:value {:keys [:app/mapstate]}
    :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
 
-(defmethod mutate 'app/update-station-info
-  [{:keys [state]} _ {:keys [new-station-info station-id line-id kilotei]}]
-  {;; :remote true
-   :value {:keys [:app/station-info]}
-   :action (fn [] (if new-station-info
-                    (swap! state assoc :app/station-info new-station-info)
-                    (swap! state assoc-in [:app/station-info :kilotei] kilotei))
-             ;; (let [station-info (:app/station-info @state)
-             ;;       station-id (:id station-info)
-             ;;       st-removed (remove #(= (:id station-id)) (:stations @state))]
-             ;;   (swap! state assoc :app/stations (conj st-removed station-info)))
-             )})
-
 (defmulti read om/dispatch)
 
 (defmethod read :app/title
   [{:keys [state] :as env} k params]
   (let [st @state]
     (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
+      {:value v} ;; :remote true
+      {})))
 
 (defmethod read :app/stations
   [{:keys [state] :as env} k {:keys [line-id] :as params}]

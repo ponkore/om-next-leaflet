@@ -91,8 +91,7 @@
                   app/mapstate
                   app/stations
                   app/lines
-                  app/station-info]} (om/props this)
-          {:keys [kilotei]} station-info]
+                  app/station-info]} (om/props this)]
       (html
        [:div
         [:div {:id "custom-control"
@@ -102,19 +101,11 @@
                   :on-change (fn [e] (let [v (-> e .-target .-value)]
                                        (om/transact! this `[(app/update-title {:new-title ~v})])))}]
          [:button {:on-click (fn [e] (let [new-title (.-value (dom/node this "title"))]
-                                       (om/transact! this `[(app/update-title {:new-title ~new-title})
-                                                            :app/title])))
+                                       (om/transact! this `[(app/update-title {:new-title ~new-title})])))
                      } "update"]
          (into [] (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
-         (let [{:keys [id station-name line-id line-name]} station-info]
-           [:div
-            [:p (str "zoom: " (:zoom mapstate init-zoom))]
-            [:p (str "[" line-id "] " line-name "/ [" id "] " station-name)]
-            [:input {:value (if (nil? kilotei) "" kilotei)
-                     :on-change (fn [e] (let [new-kilotei (-> e .-target .-value)]
-                                          (om/transact! this `[(app/update-station-info {:id ~id
-                                                                                         :line-id ~line-id
-                                                                                         :kilotei ~new-kilotei})])))}]])]
+         [:div
+          [:p (str "zoom: " (:zoom mapstate init-zoom))]]]
         (leaflet-map-fn {:mapid "map"
                          :ref :leaflet ;; referenced from get-xxx-layer function
                          :center init-center
