@@ -13,6 +13,11 @@
   {:value {:keys [:app/mapstate]}
    :action (fn [] (swap! state assoc :app/mapstate new-mapstate))})
 
+(defmethod mutate 'app/update-lines
+  [{:keys [state]} _ {:keys [new-lines]}]
+  {:value {:keys [:app/lines]}
+   :action (fn [] (swap! state assoc :app/lines new-lines))})
+
 (defmulti read om/dispatch)
 
 (defmethod read :app/title
@@ -33,8 +38,8 @@
   [{:keys [state] :as env} k params]
   (let [st @state]
     (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
+      {:value v}             ;; :remote true
+      {})))                  ;; :remote true
 
 (defmethod read :app/station-info
   [{:keys [state] :as env} k _]

@@ -1,10 +1,15 @@
 (ns om-next-leaflet.core
-  (:require [om.next :as om :refer-macros [defui]]
+  (:require [clojure.string :as str]
+            [taoensso.timbre :refer-macros [log trace debug info warn error fatal report]]
+            [cljs.core.async :refer [put! chan <! go go-loop]]
+            [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.parser :as parser]
             [om-next-leaflet.util :as util]
             [om-next-leaflet.leaflet :as leaflet]))
+
+;; (util/send-request! :get "/api/v1/stations" nil chan)
 
 (enable-console-print!)
 
@@ -137,3 +142,29 @@
      ;; :merge-tree (fn [a b] (println "|merge" a b) (merge a b))
      :parser parser
      :send (util/transit-post "/api")}))
+
+;; (defn save-binary
+;;   [binary filename]
+;;   ;; http://kuroeveryday.blogspot.jp/2016/05/file-download-from-browser.html
+;;   ;; http://qiita.com/blackawa/items/c83d3f08b71a02db9348
+;;   (let [link (.createElement js/document "a")
+;;         blob (js/Blob. #js [binary] #js {"type" "application/octet-binary"})
+;;         url (.createObjectURL (.-URL js/window) blob)]
+;;     (set! (.-download link) filename)
+;;     (set! (.-target link) "_blank")
+;;     (set! (.-href link) url)
+;;     (.appendChild (.-body js/document) link)
+;;     (try
+;;       (.click link) ;; blocking
+;;       (finally
+;;         (.removeChild (.-body js/document) link)))))
+
+;; (defn attachment-on-click
+;;   [this link filename]
+;;   (util/download-file link
+;;                       :on-success (fn [event] (let [binary (-> event .-target .getResponse)]
+;;                                                 (save-binary binary filename)))
+;;                       :on-error   (fn [event] (let [errorcode (.getStatus (-> event .-target))]
+;;                                                 (if (= errorcode 404)
+;;                                                   (js/alert "file not found")
+;;                                                   (js/alert "download error code=" errorcode))))))
