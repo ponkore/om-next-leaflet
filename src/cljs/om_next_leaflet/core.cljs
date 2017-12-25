@@ -9,8 +9,6 @@
             [om-next-leaflet.util :as util]
             [om-next-leaflet.leaflet :as leaflet]))
 
-;; (util/send-request! :get "/api/v1/stations" nil chan)
-
 (enable-console-print!)
 
 (defonce app-state (atom {}))
@@ -98,9 +96,19 @@
     (.log js/console "did-mount")
     (let [{:keys [app/lines app/stations]} (om/props this)
           stations-layer (get-stations-layer this)
-          lines-layer (get-lines-layer this)]
+          lines-layer (get-lines-layer this)
+          lines-chan (chan)]
       (leaflet/init-station-markers stations-layer stations)
-      (leaflet/init-polylines lines-layer lines)))
+      (leaflet/init-polylines lines-layer lines)
+      #_(go-loop []
+        (let [data (<! lines-chan)]
+          (if (= (:result data) :success)
+            (let [e (:event data)
+                  lines (js->clj (.getResponseJson e) :keywordize-keys true)]
+              (om/transact! this `[(app/lines {:new-lines ~ines})] )))
+          (recur)))
+      #_(om/set-state! this :lines-chan lines-chan)
+      #_(util/send-request! :get "/api2/lines" nil lines-chan)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]

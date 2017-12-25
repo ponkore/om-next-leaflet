@@ -21,7 +21,7 @@
                  [com.stuartsierra/component "0.3.2"]
                  [org.danielsz/system "0.4.1"]
                  [org.clojure/tools.namespace "0.2.11"]
-                 [org.omcljs/om "1.0.0-alpha48"]
+                 [org.omcljs/om "1.0.0-beta1"]
                  [cljsjs/leaflet "1.2.0-0"]
                  [cljsjs/leaflet-draw "0.4.12-0"]
                  [sablono "0.8.1"]
@@ -34,7 +34,7 @@
 
   :min-lein-version "2.6.1"
 
-  :jvm-opts ["--add-modules" "java.xml.bind"]
+;;  :jvm-opts ["--add-modules" "java.xml.bind"]
 
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
