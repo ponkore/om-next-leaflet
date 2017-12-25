@@ -100,15 +100,15 @@
           lines-chan (chan)]
       (leaflet/init-station-markers stations-layer stations)
       (leaflet/init-polylines lines-layer lines)
-      #_(go-loop []
+      (go-loop []
         (let [data (<! lines-chan)]
           (if (= (:result data) :success)
-            (let [e (:event data)
-                  lines (js->clj (.getResponseJson e) :keywordize-keys true)]
-              (om/transact! this `[(app/lines {:new-lines ~ines})] )))
+            (let [lines-data (:data data)]
+              (om/transact! this `[(app/update-lines {:new-lines ~lines-data}) :app/lines]))
+            ;; TODO: error handling
+            )
           (recur)))
-      #_(om/set-state! this :lines-chan lines-chan)
-      #_(util/send-request! :get "/api2/lines" nil lines-chan)))
+      (util/send-request! :get "/api2/lines" nil lines-chan)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]

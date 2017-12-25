@@ -34,7 +34,7 @@
 
   :min-lein-version "2.6.1"
 
-;;  :jvm-opts ["--add-modules" "java.xml.bind"]
+  :jvm-opts ["--add-modules" "java.xml.bind"]
 
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 

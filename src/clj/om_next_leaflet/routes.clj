@@ -30,7 +30,8 @@
          (assoc :headers {"Content-Type" "text/html; charset=utf-8"})))
    (GET "/api2/lines" _
      (generate-response-json
-      (geojson/get-lines)))
+      (->> (geojson/get-lines)
+           (map (fn [{:keys [id line-name bounding-box geometry]}] [id line-name bounding-box geometry])))))
    (POST "/api" {req :params}
      (generate-response
       ((om/parser {:read parser/readf :mutate parser/mutatef})

@@ -2,9 +2,10 @@
   (:require [clojure.string :as str]
             [cognitect.transit :as t]
             [taoensso.timbre :refer-macros [log trace debug info warn error fatal report]]
-            [cljs.core.async :refer [put! chan <!]])
+            [cljs.core.async :refer [put! chan <!]]
+            [goog.events :as events])
   (:import [goog.net XhrIo]
-           [goog.events.listen]))
+           [goog.net EventType]))
 
 (defn transit-post [url]
   (fn [edn callback-fn]
@@ -31,8 +32,8 @@
   [url & {:keys [on-success on-error]}]
   (let [xhrio (XhrIo.)]
     (.setResponseType xhrio XhrIo.ResponseType.ARRAY_BUFFER)
-    (goog.events.listen xhrio EventType.SUCCESS on-success)
-    (goog.events.listen xhrio EventType.ERROR   on-error)
+    (events/listen xhrio EventType.SUCCESS on-success)
+    (events/listen xhrio EventType.ERROR   on-error)
     (.send xhrio url "GET" nil #js {"Content-type" "application/octet-stream"})))
 
 (defn send-request
@@ -47,19 +48,22 @@
 (def http-methods #{"GET" "PUT" "POST" "DELETE"})
 
 (defn handler
-  [k e chan]
-  (put! chan {:result k :event e}))
+  [xhrio k e chan]
+  (if (= k :success)
+    (let [data (js->clj (.getResponseJson xhrio))]
+      (put! chan {:result k :event e :data data}))
+    (put! chan {:result k :event e})))
 
 (def xhrio (XhrIo.))
 
 (defn send-request!
-  [method url content-type data chan]
+  [method url data chan]
   (let [method (str/upper-case (name method))
         _ (assert (http-methods method))]
-    (.setResponseType xhrio XhrIo.ResponseType.ARRAY_BUFFER)
-    (goog.events.listen xhrio EventType.SUCCESS (fn [e] (handler :success e chan)))
-    (goog.events.listen xhrio EventType.ERROR (fn [e] (handler :error e chan )))
-    (goog.events.listen xhrio EventType.COMPLETE (fn [e] (handler :complete e chan)))
-    (goog.events.listen xhrio EventType.ABORT (fn [e] (handler :abort e chan)))
-    (goog.events.listen xhrio EventType.TIMEOUT (fn [e] (handler :timeout e chan)))
-    (.send XhrIo url method data #js {"Content-type" "application/octet-stream"})))
+    ;; (.setResponseType xhrio XhrIo.ResponseType.ARRAY_BUFFER)
+    (events/listen xhrio EventType.SUCCESS (fn [e] (handler xhrio :success e chan)))
+    (events/listen xhrio EventType.ERROR (fn [e] (handler xhrio :error e chan )))
+    (events/listen xhrio EventType.COMPLETE (fn [e] (handler xhrio :complete e chan)))
+    (events/listen xhrio EventType.ABORT (fn [e] (handler xhrio :abort e chan)))
+    (events/listen xhrio EventType.TIMEOUT (fn [e] (handler xhrio :timeout e chan)))
+    (.send xhrio url method data #js {"Content-type" "application/json"})))
