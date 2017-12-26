@@ -32,6 +32,9 @@
      (generate-response-json
       (->> (geojson/get-lines)
            (map (fn [{:keys [id line-name bounding-box geometry]}] [id line-name bounding-box geometry])))))
+   (GET "/api2/lines/:line-id/stations" [line-id]
+     (generate-response-json
+      (geojson/get-stations (fn [m] (= (:line-id m) line-id)))))
    (POST "/api" {req :params}
      (generate-response
       ((om/parser {:read parser/readf :mutate parser/mutatef})

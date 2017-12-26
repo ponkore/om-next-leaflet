@@ -86,29 +86,36 @@
   (query [this]
     '[:app/title
       :app/mapstate
-      :app/lines
-      (:app/stations {:line-id ?line-id})
+      (:app/stations {:line-id ?line-id}) ;; can be removed?
       :app/station-info])
   Object
   (componentWillMount [this]
     (.log js/console "will-mount"))
   (componentDidMount [this]
     (.log js/console "did-mount")
-    (let [{:keys [app/lines app/stations]} (om/props this)
+    (let [{:keys [app/stations]} (om/props this)
           stations-layer (get-stations-layer this)
           lines-layer (get-lines-layer this)
-          lines-chan (chan)]
-      (leaflet/init-station-markers stations-layer stations)
+          lines-chan (chan)
+          stations-chan (chan)]
       (go-loop []
         (let [data (<! lines-chan)]
           (if (= (:result data) :success)
             (let [lines-data (:data data)]
-              ;; (om/transact! this `[(app/update-lines {:new-lines ~lines-data}) :app/lines])
               (leaflet/init-polylines lines-layer lines-data))
             ;; TODO: error handling
             )
           (recur)))
-      (util/send-request! :get "/api2/lines" nil lines-chan)))
+      (go-loop []
+        (let [data (<! stations-chan)]
+          (if (= (:result data) :success)
+            (let [stations-data (:data data)]
+              (leaflet/init-station-markers stations-layer stations-data))
+            ;; TODO: error handling
+            )
+          (recur)))
+      (util/send-request! :get "/api2/lines" nil lines-chan)
+      (util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
