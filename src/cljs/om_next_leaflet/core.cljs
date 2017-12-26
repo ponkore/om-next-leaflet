@@ -99,12 +99,12 @@
           lines-layer (get-lines-layer this)
           lines-chan (chan)]
       (leaflet/init-station-markers stations-layer stations)
-      (leaflet/init-polylines lines-layer lines)
       (go-loop []
         (let [data (<! lines-chan)]
           (if (= (:result data) :success)
             (let [lines-data (:data data)]
-              (om/transact! this `[(app/update-lines {:new-lines ~lines-data}) :app/lines]))
+              ;; (om/transact! this `[(app/update-lines {:new-lines ~lines-data}) :app/lines])
+              (leaflet/init-polylines lines-layer lines-data))
             ;; TODO: error handling
             )
           (recur)))
