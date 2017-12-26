@@ -1,5 +1,5 @@
 (ns om-next-leaflet.parser
-  (:require [om.next :as om :refer-macros [defui]]))
+  (:require [om.next :as om]))
 
 (defmulti mutate om/dispatch)
 
@@ -24,28 +24,7 @@
   [{:keys [state] :as env} k params]
   (let [st @state]
     (if-let [v (get st k)]
-      {:value v} ;; :remote true
-      {})))
-
-(defmethod read :app/stations
-  [{:keys [state] :as env} k {:keys [line-id] :as params}]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v :remote true}
-      {:remote true})))
-
-(defmethod read :app/lines
-  [{:keys [state] :as env} k params]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v}             ;; :remote true
-      {})))                  ;; :remote true
-
-(defmethod read :app/station-info
-  [{:keys [state] :as env} k _]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v} ;; :remote true
+      {:value v}
       {})))
 
 (defmethod read :default ;; :app/mapstate

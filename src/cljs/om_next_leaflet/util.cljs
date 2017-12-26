@@ -50,7 +50,7 @@
 (defn handler
   [xhrio k e chan]
   (if (= k :success)
-    (let [data (js->clj (.getResponseJson xhrio))]
+    (let [data (js->clj (.getResponseJson xhrio) :keywordize-keys true)]
       (put! chan {:result k :event e :data data}))
     (put! chan {:result k :event e})))
 

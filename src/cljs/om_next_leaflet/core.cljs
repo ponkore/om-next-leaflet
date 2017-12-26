@@ -11,8 +11,6 @@
 
 (enable-console-print!)
 
-(defonce app-state (atom {}))
-
 (declare reconciler Root)
 
 (defn render []
@@ -25,6 +23,9 @@
 (def init-center [34.6964898 135.4930235])
 (def init-zoom 12)
 (defrecord MapState [lat lng zoom bounds])
+
+(defonce app-state (atom {:app/title ""
+                          :app/mapstate (map->MapState {})}))
 
 (def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
                  "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -85,45 +86,34 @@
   static om/IQuery
   (query [this]
     '[:app/title
-      :app/mapstate
-      (:app/stations {:line-id ?line-id}) ;; can be removed?
-      :app/station-info])
+      :app/mapstate])
   Object
   (componentWillMount [this]
     (.log js/console "will-mount"))
   (componentDidMount [this]
     (.log js/console "did-mount")
-    (let [{:keys [app/stations]} (om/props this)
-          stations-layer (get-stations-layer this)
+    (let [stations-layer (get-stations-layer this)
           lines-layer (get-lines-layer this)
           lines-chan (chan)
           stations-chan (chan)]
       (go-loop []
-        (let [data (<! lines-chan)]
-          (if (= (:result data) :success)
-            (let [lines-data (:data data)]
-              (leaflet/init-polylines lines-layer lines-data))
-            ;; TODO: error handling
-            )
-          (recur)))
-      (go-loop []
-        (let [data (<! stations-chan)]
-          (if (= (:result data) :success)
-            (let [stations-data (:data data)]
-              (leaflet/init-station-markers stations-layer stations-data))
-            ;; TODO: error handling
-            )
+        (let [[data chan-accepted] (alts! [lines-chan stations-chan])]
+          (when (= (:result data) :success)
+            (when (= chan-accepted lines-chan)
+              (debug "after alts! lines")
+              (leaflet/init-polylines lines-layer (:data data))
+              ;; TODO: error handling
+              )
+            (when (= chan-accepted stations-chan)
+              (debug "after alts! stations")
+              (leaflet/init-station-markers stations-layer (:data data))))
           (recur)))
       (util/send-request! :get "/api2/lines" nil lines-chan)
-      (util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
+      #_(util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
-    (let [{:keys [app/title
-                  app/mapstate
-                  app/stations
-                  app/lines
-                  app/station-info]} (om/props this)]
+    (let [{:keys [app/title app/mapstate]} (om/props this)]
       (html
        [:div
         [:div {:id "custom-control"
@@ -133,7 +123,7 @@
                   :on-change (fn [e] (event-handler :root/input-on-change this e))}]
          [:button {:on-click (fn [e] (event-handler :root/button-click this e))}
           "update"]
-         (vec (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
+         ;; (vec (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
          [:div
           [:p (str "zoom: " (:zoom mapstate init-zoom))]]]
         (leaflet-map-fn {:mapid "map"
