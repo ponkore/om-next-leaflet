@@ -36,14 +36,14 @@
     (events/listen xhrio EventType.ERROR   on-error)
     (.send xhrio url "GET" nil #js {"Content-type" "application/octet-stream"})))
 
-(defn send-request
-  [method url content-type callback]
-  (.send XhrIo url
-         (fn [e]
-           (this-as this
-             (callback e this))
-           method
-           content-type)))
+;; (defn send-req0
+;;   [method url content-type callback]
+;;   (.send XhrIo url
+;;          (fn [e]
+;;            (this-as this
+;;              (callback e this))
+;;            method
+;;            content-type)))
 
 (def http-methods #{"GET" "PUT" "POST" "DELETE"})
 
@@ -54,12 +54,11 @@
       (put! chan {:result k :event e :data data}))
     (put! chan {:result k :event e})))
 
-(def xhrio (XhrIo.))
-
 (defn send-request!
   [method url data chan]
   (let [method (str/upper-case (name method))
-        _ (assert (http-methods method))]
+        _ (assert (http-methods method))
+        xhrio (XhrIo.)]
     ;; (.setResponseType xhrio XhrIo.ResponseType.ARRAY_BUFFER)
     (events/listen xhrio EventType.SUCCESS (fn [e] (handler xhrio :success e chan)))
     (events/listen xhrio EventType.ERROR (fn [e] (handler xhrio :error e chan )))

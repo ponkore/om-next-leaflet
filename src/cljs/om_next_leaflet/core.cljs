@@ -79,37 +79,40 @@
   (let [new-title (.-value (dom/node this "title"))]
     (om/transact! this `[(app/update-title {:new-title ~new-title})])))
 
+(defn map-event-loop
+  [this lines-layer lines-chan stations-layer stations-chan]
+  (go-loop []
+    (let [[data chan-accepted] (alts! [lines-chan stations-chan])]
+      (when (= (:result data) :success)
+        (cond
+          (= chan-accepted lines-chan) (let [lines-data (:data data)]
+                                         (debug "after alts! lines")
+                                         ;; TODO: action を定義したりするとおもしろい
+                                         (leaflet/init-polylines lines-layer lines-data))
+          (= chan-accepted stations-chan) (let [stations-data (:data data)]
+                                            (debug "after alts! stations")
+                                            ;; TODO: action を定義したりするとおもしろい
+                                            (leaflet/init-station-markers stations-layer stations-data))
+          :else (.log js/console "chan??=" chan-accepted)))
+      (recur))))
+
 (defui Root
-  static om/IQueryParams
-  (params [_]
-    {:line-id 24})
   static om/IQuery
   (query [this]
     '[:app/title
       :app/mapstate])
   Object
-  (componentWillMount [this]
-    (.log js/console "will-mount"))
   (componentDidMount [this]
     (.log js/console "did-mount")
     (let [stations-layer (get-stations-layer this)
+          stations-chan (chan)
           lines-layer (get-lines-layer this)
-          lines-chan (chan)
-          stations-chan (chan)]
-      (go-loop []
-        (let [[data chan-accepted] (alts! [lines-chan stations-chan])]
-          (when (= (:result data) :success)
-            (when (= chan-accepted lines-chan)
-              (debug "after alts! lines")
-              (leaflet/init-polylines lines-layer (:data data))
-              ;; TODO: error handling
-              )
-            (when (= chan-accepted stations-chan)
-              (debug "after alts! stations")
-              (leaflet/init-station-markers stations-layer (:data data))))
-          (recur)))
+          lines-chan (chan)]
+      ;; watch channels
+      (map-event-loop this lines-layer lines-chan stations-layer stations-chan)
+      ;; initialize
       (util/send-request! :get "/api2/lines" nil lines-chan)
-      #_(util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
+      (util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
   (componentWillUnmount [this]
     (.log js/console "will-unmount"))
   (render [this]
@@ -123,7 +126,6 @@
                   :on-change (fn [e] (event-handler :root/input-on-change this e))}]
          [:button {:on-click (fn [e] (event-handler :root/button-click this e))}
           "update"]
-         ;; (vec (concat [:select {:value 24}] (mapv (fn [[id line-name]] [:option {:value id} line-name]) lines)))
          [:div
           [:p (str "zoom: " (:zoom mapstate init-zoom))]]]
         (leaflet-map-fn {:mapid "map"

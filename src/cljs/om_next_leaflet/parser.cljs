@@ -20,14 +20,7 @@
 
 (defmulti read om/dispatch)
 
-(defmethod read :app/title
-  [{:keys [state] :as env} k params]
-  (let [st @state]
-    (if-let [v (get st k)]
-      {:value v}
-      {})))
-
-(defmethod read :default ;; :app/mapstate
+(defmethod read :default ;; :app/mapstate, :app/title
   [{:keys [state] :as env} k params]
   (if-let [v (get @state k)]
     {:value v}
