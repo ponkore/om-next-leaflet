@@ -5,13 +5,7 @@
             [ring.util.response :refer [response]]
             [cheshire.core :refer [generate-string]]
             [om-next-leaflet.geojson :as geojson]
-            [om-next-leaflet.parser :as parser]
             [om.next.server :as om]))
-
-(defn generate-response [data & [status]]
-  {:status  (or status 200)
-   :headers {"Content-Type" "application/transit+json; charset=UTF-8"}
-   :body    data})
 
 (defn generate-response-json [data & [status]]
   {:status  (or status 200)
@@ -35,9 +29,5 @@
    (GET "/api2/lines/:line-id/stations" [line-id]
      (generate-response-json
       (geojson/get-stations (fn [m] (= (:line-id m) (Integer/parseInt line-id))))))
-   (POST "/api" {req :params}
-     (generate-response
-      ((om/parser {:read parser/readf :mutate parser/mutatef})
-       {:state state} (:remote req))))
    (resources "/")
    (not-found "Not Found")))

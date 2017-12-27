@@ -1,32 +1,31 @@
 (ns om-next-leaflet.util
   (:require [clojure.string :as str]
-            [cognitect.transit :as t]
             [taoensso.timbre :refer-macros [log trace debug info warn error fatal report]]
             [cljs.core.async :refer [put! chan <!]]
             [goog.events :as events])
   (:import [goog.net XhrIo]
            [goog.net EventType]))
 
-(defn transit-post [url]
-  (fn [edn callback-fn]
-    (.send XhrIo url
-      (fn [e]
-        (this-as this
-          (try
-            (let [res (.getResponseText this)
-                  parsed (t/read (t/reader :json) res)]
-              (try
-                (callback-fn parsed)
-                (catch js/Error ex
-                  (error "Exception occurred in transit-post callback." ex)
-                  (error "parsed edn=" parsed)
-                  (error "stacktrace=" ex.stack))))
-            (catch js/Error ex
-              (error "Exception occurred in parse transit response." ex)
-              (error "responseText=" (.getResponseText this))
-              (error "stacktrace=" ex.stack)))))
-      "POST" (t/write (t/writer :json) edn)
-      #js {"Content-Type" "application/transit+json"})))
+;; (defn transit-post [url]
+;;   (fn [edn callback-fn]
+;;     (.send XhrIo url
+;;       (fn [e]
+;;         (this-as this
+;;           (try
+;;             (let [res (.getResponseText this)
+;;                   parsed (t/read (t/reader :json) res)]
+;;               (try
+;;                 (callback-fn parsed)
+;;                 (catch js/Error ex
+;;                   (error "Exception occurred in transit-post callback." ex)
+;;                   (error "parsed edn=" parsed)
+;;                   (error "stacktrace=" ex.stack))))
+;;             (catch js/Error ex
+;;               (error "Exception occurred in parse transit response." ex)
+;;               (error "responseText=" (.getResponseText this))
+;;               (error "stacktrace=" ex.stack)))))
+;;       "POST" (t/write (t/writer :json) edn)
+;;       #js {"Content-Type" "application/transit+json"})))
 
 (defn download-file
   [url & {:keys [on-success on-error]}]

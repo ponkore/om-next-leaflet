@@ -13,8 +13,19 @@
 
 (declare reconciler Root)
 
+(defonce app-state (atom {}))
+
 (defn render []
   (om/add-root! reconciler Root (js/document.getElementById "app")))
+
+(def parser (om/parser {:read parser/read :mutate parser/mutate}))
+
+(def reconciler
+  (om/reconciler
+    {:state app-state
+     :normalize true
+     ;; :merge-tree (fn [a b] (println "|merge" a b) (merge a b))
+     :parser parser}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -24,8 +35,8 @@
 (def init-zoom 12)
 (defrecord MapState [lat lng zoom bounds])
 
-(defonce app-state (atom {:app/title ""
-                          :app/mapstate (map->MapState {})}))
+(reset! app-state {:app/title ""
+                   :app/mapstate (map->MapState {})})
 
 (def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
                  "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -139,16 +150,6 @@
                                           :zoomlevelschange (partial change-mapstate this)
                                           :viewreset        (partial change-mapstate this)
                                           :load             (partial change-mapstate this)}})]))))
-
-(def parser (om/parser {:read parser/read :mutate parser/mutate}))
-
-(def reconciler
-  (om/reconciler
-    {:state app-state
-     :normalize true
-     ;; :merge-tree (fn [a b] (println "|merge" a b) (merge a b))
-     :parser parser
-     :send (util/transit-post "/api")}))
 
 ;; (defn save-binary
 ;;   [binary filename]
