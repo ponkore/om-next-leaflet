@@ -6,44 +6,6 @@
   (:import [goog.net XhrIo]
            [goog.net EventType]))
 
-;; (defn transit-post [url]
-;;   (fn [edn callback-fn]
-;;     (.send XhrIo url
-;;       (fn [e]
-;;         (this-as this
-;;           (try
-;;             (let [res (.getResponseText this)
-;;                   parsed (t/read (t/reader :json) res)]
-;;               (try
-;;                 (callback-fn parsed)
-;;                 (catch js/Error ex
-;;                   (error "Exception occurred in transit-post callback." ex)
-;;                   (error "parsed edn=" parsed)
-;;                   (error "stacktrace=" ex.stack))))
-;;             (catch js/Error ex
-;;               (error "Exception occurred in parse transit response." ex)
-;;               (error "responseText=" (.getResponseText this))
-;;               (error "stacktrace=" ex.stack)))))
-;;       "POST" (t/write (t/writer :json) edn)
-;;       #js {"Content-Type" "application/transit+json"})))
-
-(defn download-file
-  [url & {:keys [on-success on-error]}]
-  (let [xhrio (XhrIo.)]
-    (.setResponseType xhrio XhrIo.ResponseType.ARRAY_BUFFER)
-    (events/listen xhrio EventType.SUCCESS on-success)
-    (events/listen xhrio EventType.ERROR   on-error)
-    (.send xhrio url "GET" nil #js {"Content-type" "application/octet-stream"})))
-
-;; (defn send-req0
-;;   [method url content-type callback]
-;;   (.send XhrIo url
-;;          (fn [e]
-;;            (this-as this
-;;              (callback e this))
-;;            method
-;;            content-type)))
-
 (def http-methods #{"GET" "PUT" "POST" "DELETE"})
 
 (defn handler

@@ -31,12 +31,12 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def init-center [34.6964898 135.4930235])
-(def init-zoom 12)
 (defrecord MapState [lat lng zoom bounds])
 
 (reset! app-state {:app/title ""
-                   :app/mapstate (map->MapState {})})
+                   :app/mapstate (map->MapState {:lat 34.6964898
+                                                 :lng 135.4930235
+                                                 :zoom 12})})
 
 (def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
                  "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -51,14 +51,6 @@
                  "http://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
                  "<a href='http://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html' target='_blank'>国土地理院</a>"))
 
-(defn get-stations-layer
-  [this]
-  (-> (om/react-ref this :leaflet) om/get-state :stations-layer))
-
-(defn get-lines-layer
-  [this]
-  (-> (om/react-ref this :leaflet) om/get-state :lines-layer))
-
 (defn change-mapstate
   [this e leaflet-map]
   (let [event-type (-> e .-type keyword) ;; for debug
@@ -67,16 +59,10 @@
                                  :lng lng
                                  :zoom (-> leaflet-map .getZoom)
                                  :bounds (-> leaflet-map .getBounds leaflet/bounds->clj)})]
-    (.log js/console (str "[" event-type "]"))
+    (debug (str "[" event-type "]"))
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
 
 (def leaflet-map-fn (om/factory leaflet/Leaflet))
-
-;; (fn [e] (let [station (filter (fn [station] (= (:id station) id)) stations)
-;;               new-station-info (-> station
-;;                                    first
-;;                                    (dissoc :geometry))]
-;;           (om/transact! this `[(app/update-station-info {:new-station-info ~new-station-info})])))
 
 (defmulti event-handler (fn [k this e] k))
 
@@ -90,22 +76,30 @@
   (let [new-title (.-value (dom/node this "title"))]
     (om/transact! this `[(app/update-title {:new-title ~new-title})])))
 
-(defn map-event-loop
-  [this lines-layer lines-chan stations-layer stations-chan]
-  (go-loop []
-    (let [[data chan-accepted] (alts! [lines-chan stations-chan])]
-      (when (= (:result data) :success)
-        (cond
-          (= chan-accepted lines-chan) (let [lines-data (:data data)]
-                                         (debug "after alts! lines")
-                                         ;; TODO: action を定義したりするとおもしろい
-                                         (leaflet/init-polylines lines-layer lines-data))
-          (= chan-accepted stations-chan) (let [stations-data (:data data)]
-                                            (debug "after alts! stations")
-                                            ;; TODO: action を定義したりするとおもしろい
-                                            (leaflet/init-station-markers stations-layer stations-data))
-          :else (.log js/console "chan??=" chan-accepted)))
-      (recur))))
+(defmulti channel-handler (fn [this data] (:tag data)))
+
+(defmethod channel-handler :lines
+  [this data]
+  (let [layer (-> (om/react-ref this :leaflet) om/get-state :lines-layer)]
+    (debug "after alts! lines")
+    (leaflet/init-polylines layer (:data data))))
+
+(defmethod channel-handler :stations
+  [this data]
+  (let [layer (-> (om/react-ref this :leaflet) om/get-state :stations-layer)]
+    (debug "after alts! stations")
+    (leaflet/init-station-markers layer (:data data))))
+
+(defn main-channel-loop
+  [this channels]
+  (let [wait-channels (vals channels)
+        v->k (zipmap (vals channels) (keys channels))]
+    (go-loop []
+      (let [[data chan-accepted] (alts! wait-channels)]
+        (when (= (:result data) :success)
+          (let [tag (v->k chan-accepted)]
+            (channel-handler this (assoc data :tag tag))))
+        (recur)))))
 
 (defui Root
   static om/IQuery
@@ -114,18 +108,15 @@
       :app/mapstate])
   Object
   (componentDidMount [this]
-    (.log js/console "did-mount")
-    (let [stations-layer (get-stations-layer this)
-          stations-chan (chan)
-          lines-layer (get-lines-layer this)
-          lines-chan (chan)]
+    (debug "did-mount")
+    (let [channels {:lines (chan) :stations (chan)}]
       ;; watch channels
-      (map-event-loop this lines-layer lines-chan stations-layer stations-chan)
+      (main-channel-loop this channels)
       ;; initialize
-      (util/send-request! :get "/api2/lines" nil lines-chan)
-      (util/send-request! :get "/api2/lines/24/stations" nil stations-chan)))
+      (util/send-request! :get "/api2/lines" nil (:lines channels))
+      (util/send-request! :get "/api2/lines/24/stations" nil (:stations channels))))
   (componentWillUnmount [this]
-    (.log js/console "will-unmount"))
+    (debug "will-unmount"))
   (render [this]
     (let [{:keys [app/title app/mapstate]} (om/props this)]
       (html
@@ -134,45 +125,20 @@
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
          [:input {:ref "title"
                   :value (if (nil? title) "" title)
-                  :on-change (fn [e] (event-handler :root/input-on-change this e))}]
-         [:button {:on-click (fn [e] (event-handler :root/button-click this e))}
+                  :on-change #(event-handler :root/input-on-change this %)}]
+         [:button {:on-click #(event-handler :root/button-click this %)}
           "update"]
          [:div
-          [:p (str "zoom: " (:zoom mapstate init-zoom))]]]
+          [:p (str "zoom: " (:zoom mapstate))]]]
         (leaflet-map-fn {:mapid "map"
-                         :ref :leaflet ;; referenced from get-xxx-layer function
-                         :center init-center
-                         :zoom init-zoom
+                         :ref :leaflet ;; referenced from channel-handler for look up leaflet map component.
+                         :center [(:lat mapstate) (:lng mapstate)]
+                         :zoom (:zoom mapstate)
                          :base-layers [osm-layer pale-layer std-layer]
                          :event-handlers {:movestart        (partial change-mapstate this)
                                           :move             (partial change-mapstate this)
                                           :moveend          (partial change-mapstate this)
                                           :zoomlevelschange (partial change-mapstate this)
                                           :viewreset        (partial change-mapstate this)
-                                          :load             (partial change-mapstate this)}})]))))
-
-;; (defn save-binary
-;;   [binary filename]
-;;   ;; http://kuroeveryday.blogspot.jp/2016/05/file-download-from-browser.html
-;;   ;; http://qiita.com/blackawa/items/c83d3f08b71a02db9348
-;;   (let [link (.createElement js/document "a")
-;;         blob (js/Blob. #js [binary] #js {"type" "application/octet-binary"})
-;;         url (.createObjectURL (.-URL js/window) blob)]
-;;     (set! (.-download link) filename)
-;;     (set! (.-target link) "_blank")
-;;     (set! (.-href link) url)
-;;     (.appendChild (.-body js/document) link)
-;;     (try
-;;       (.click link) ;; blocking
-;;       (finally
-;;         (.removeChild (.-body js/document) link)))))
-
-;; (defn attachment-on-click
-;;   [this link filename]
-;;   (util/download-file link
-;;                       :on-success (fn [event] (let [binary (-> event .-target .getResponse)]
-;;                                                 (save-binary binary filename)))
-;;                       :on-error   (fn [event] (let [errorcode (.getStatus (-> event .-target))]
-;;                                                 (if (= errorcode 404)
-;;                                                   (js/alert "file not found")
-;;                                                   (js/alert "download error code=" errorcode))))))
+                                          :load             (partial change-mapstate this)}
+                         :draw-created-handler (fn [e drawn-items] (.log js/console drawn-items))})]))))
