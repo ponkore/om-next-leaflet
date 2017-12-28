@@ -11,32 +11,25 @@
 
 (enable-console-print!)
 
-(declare reconciler Root)
+(defrecord MapState [lat lng zoom bounds])
 
-(defonce app-state (atom {}))
+(defonce app-state (atom {:app/title ""
+                          :app/mapstate (map->MapState {:lat 34.6964898
+                                                        :lng 135.4930235
+                                                        :zoom 12})}))
+
+(def parser (om/parser {:read parser/read :mutate parser/mutate}))
+
+(def reconciler (om/reconciler {:state app-state :parser parser}))
+
+(declare Root)
 
 (defn render []
   (om/add-root! reconciler Root (js/document.getElementById "app")))
 
-(def parser (om/parser {:read parser/read :mutate parser/mutate}))
-
-(def reconciler
-  (om/reconciler
-    {:state app-state
-     :normalize true
-     ;; :merge-tree (fn [a b] (println "|merge" a b) (merge a b))
-     :parser parser}))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defrecord MapState [lat lng zoom bounds])
-
-(reset! app-state {:app/title ""
-                   :app/mapstate (map->MapState {:lat 34.6964898
-                                                 :lng 135.4930235
-                                                 :zoom 12})})
 
 (def osm-layer (leaflet/create-tilelayer "OpenStreetMap"
                  "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -64,31 +57,30 @@
 
 (def leaflet-map-fn (om/factory leaflet/Leaflet))
 
-(defmulti event-handler (fn [k this e] k))
-
-(defmethod event-handler :root/input-on-change
-  [_ this e]
-  (let [v (-> e .-target .-value)]
-    (om/transact! this `[(app/update-title {:new-title ~v})])))
-
-(defmethod event-handler :root/button-click
-  [_ this e]
-  (let [new-title (.-value (dom/node this "title"))]
-    (om/transact! this `[(app/update-title {:new-title ~new-title})])))
-
 (defmulti channel-handler (fn [this data] (:tag data)))
 
-(defmethod channel-handler :lines
+(defmethod channel-handler :leaflet/lines
   [this data]
-  (let [layer (-> (om/react-ref this :leaflet) om/get-state :lines-layer)]
+  (let [leaflet-obj (om/react-ref this :leaflet)]
     (debug "after alts! lines")
-    (leaflet/init-polylines layer (:data data))))
+    (leaflet/init-polylines leaflet-obj (:data data))))
 
-(defmethod channel-handler :stations
+(defmethod channel-handler :leaflet/stations
   [this data]
-  (let [layer (-> (om/react-ref this :leaflet) om/get-state :stations-layer)]
+  (let [leaflet-obj (om/react-ref this :leaflet)]
     (debug "after alts! stations")
-    (leaflet/init-station-markers layer (:data data))))
+    (leaflet/init-station-markers leaflet-obj (:data data))))
+
+(defmethod channel-handler :leaflet/draw-event
+  [this data]
+  (let [leaflet-obj (om/react-ref this :leaflet)]
+    (debug "after alts! leaflet-created" data)))
+
+(defmethod channel-handler :app/events
+  [this data]
+  (let [{:keys [event-id data]} data]
+    (debug "after alts! :app/events :event-id " event-id ", data=" data)
+    (om/transact! this `[(app/update-title {:new-title ~data})])))
 
 (defn main-channel-loop
   [this channels]
@@ -109,24 +101,34 @@
   Object
   (componentDidMount [this]
     (debug "did-mount")
-    (let [channels {:lines (chan) :stations (chan)}]
+    (let [channels {:leaflet/lines (chan)
+                    :leaflet/stations (chan)
+                    :leaflet/draw-event (chan)
+                    :app/events (chan)}]
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize
-      (util/send-request! :get "/api2/lines" nil (:lines channels))
-      (util/send-request! :get "/api2/lines/24/stations" nil (:stations channels))))
+      (util/send-request! :get "/api2/lines" nil (:leaflet/lines channels))
+      (util/send-request! :get "/api2/lines/24/stations" nil (:leaflet/stations channels))
+      (om/update-state! this assoc :channels channels)))
   (componentWillUnmount [this]
     (debug "will-unmount"))
   (render [this]
-    (let [{:keys [app/title app/mapstate]} (om/props this)]
+    (let [{:keys [app/title app/mapstate]} (om/props this)
+          draw-event-chan (-> this om/get-state :channels :leaflet/draw-event)
+          event-chan (-> this om/get-state :channels :app/events)]
       (html
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
          [:input {:ref "title"
                   :value (if (nil? title) "" title)
-                  :on-change #(event-handler :root/input-on-change this %)}]
-         [:button {:on-click #(event-handler :root/button-click this %)}
+                  :on-change (fn [e]
+                               (let [new-title (-> e .-target .-value)]
+                                 (put! event-chan {:result :success :event-id :app/update-title :data new-title})))}]
+         [:button {:on-click (fn [e]
+                               (let [new-title (.-value (dom/node this "title"))]
+                                 (put! event-chan {:result :success :event-id :app/on-click :data new-title})))}
           "update"]
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
@@ -141,4 +143,4 @@
                                           :zoomlevelschange (partial change-mapstate this)
                                           :viewreset        (partial change-mapstate this)
                                           :load             (partial change-mapstate this)}
-                         :draw-created-handler (fn [e drawn-items] (.log js/console drawn-items))})]))))
+                         :draw-event-chan draw-event-chan})]))))

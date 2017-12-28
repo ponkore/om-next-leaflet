@@ -1,6 +1,7 @@
 (ns om-next-leaflet.leaflet
   (:require [om.next :as om :refer-macros [defui]]
             [taoensso.timbre :refer-macros [log trace debug info warn error fatal report]]
+            [cljs.core.async :refer [put!]]
             [sablono.core :as html :refer-macros [html]]
             [cljsjs.leaflet]
             [cljsjs.leaflet-draw]))
@@ -48,40 +49,44 @@
     (.polyline js/L (clj->js geom) (clj->js opts))))
 
 (defn init-station-markers
-  [stations-layer stations]
-  (doseq [{:keys [id station-name line-name geometry]} stations]
-    (let [[lng lat] geometry
-          marker (apply create-marker lat lng (:marker-default-style custom-styles))]
-      (doto marker
-        (.bindPopup (str "<b>" line-name "</b><br>" station-name))
-        (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
-        (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles)))))
-        (.addTo stations-layer)))))
+  [leaflet-obj stations]
+  (let [target-layer (-> leaflet-obj om/get-state :stations-layer)]
+    (doseq [{:keys [id station-name line-name geometry]} stations]
+      (let [[lng lat] geometry
+            marker (apply create-marker lat lng (:marker-default-style custom-styles))]
+        (doto marker
+          (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+          (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
+          (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles)))))
+          (.addTo target-layer))))))
 
 (defn init-polylines
-  [lines-layer lines]
-  (doseq [[id name bounding-box geometry] lines]
-    (let [polyline (apply create-polyline geometry (:polyline-default-style custom-styles))]
-      (doto polyline
-        (.bindTooltip (str "<b>" name "[" id "]</b>"))
-        (.on "mouseover" (fn [e]
-                           (.setStyle polyline (clj->js (:mouseover-style custom-styles)))
-                           (.openTooltip polyline (.-latlng e))))
-        (.on "mouseout" (fn [e]
-                          (.setStyle polyline (clj->js (:default-style custom-styles)))
-                          (.closeTooltip polyline)))
-        (.addTo lines-layer)))))
+  [leaflet-obj lines]
+  (let [target-layer (-> leaflet-obj om/get-state :lines-layer)]
+    (doseq [[id name bounding-box geometry] lines]
+      (let [polyline (apply create-polyline geometry (:polyline-default-style custom-styles))]
+        (doto polyline
+          (.bindTooltip (str "<b>" name "[" id "]</b>"))
+          (.on "mouseover" (fn [e]
+                             (.setStyle polyline (clj->js (:mouseover-style custom-styles)))
+                             (.openTooltip polyline (.-latlng e))))
+          (.on "mouseout" (fn [e]
+                            (.setStyle polyline (clj->js (:default-style custom-styles)))
+                            (.closeTooltip polyline)))
+          (.addTo target-layer))))))
 
 (defn draw-created-fn
-  [drawn-items draw-created-handler]
+  [this]
   (fn [e]
-    (let [layer (.-layer e)]
+    (let [layer (.-layer e)
+          drawn-items (-> this om/get-state :drawn-items)
+          draw-event-chan (-> this om/props :draw-event-chan)]
       (.log js/console (.-target e))
       (.setStyle layer (clj->js (:default-style custom-styles)))
       (.on layer "mouseover" (fn [e] (.setStyle layer (clj->js (:mouseover-style custom-styles)))))
       (.on layer "mouseout" (fn [e] (.setStyle layer (clj->js (:default-style custom-styles)))))
       (.addLayer drawn-items layer)
-      (draw-created-handler e drawn-items))))
+      (put! draw-event-chan {:result :success :event e :drawn-items drawn-items}))))
 
 (defui Leaflet
   Object
@@ -89,7 +94,7 @@
     (debug "will-mount @leaflet.cljs"))
   (componentDidMount [this]
     (debug "did-mount @leaflet.cljs")
-    (let [{:keys [mapid center zoom base-layers event-handlers draw-created-handler]} (om/props this)
+    (let [{:keys [mapid center zoom base-layers event-handlers]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
           stations-layer (.addTo (js/L.FeatureGroup.) leaflet-map)
@@ -109,7 +114,7 @@
       (.addControl leaflet-map
                    (js/L.Control.Draw. (clj->js {:edit { :featureGroup drawn-items }
                                                  :draw { }})))
-      (.on leaflet-map "draw:created" (draw-created-fn drawn-items draw-created-handler))
+      (.on leaflet-map "draw:created" (draw-created-fn this))
       ;; (.on leaflet-map "draw:edited" (fn [e] (let [layers (.-layers e)] )))
       ;; event-handlers expected:
       ;;   movestart, move, moveend, zoomlevelschange, viewreset, load
@@ -117,7 +122,11 @@
               :let [callback (get event-handlers k)
                     event-name (name k)]]
         (.on leaflet-map event-name (fn [e] (callback e leaflet-map))))
-      (om/update-state! this assoc :mapobj leaflet-map :stations-layer stations-layer :lines-layer lines-layer)))
+      (om/update-state! this assoc
+                        :mapobj leaflet-map
+                        :drawn-items drawn-items
+                        :stations-layer stations-layer
+                        :lines-layer lines-layer)))
   (render [this]
     (html
      [:div {:id (:mapid (om/props this))}])))
