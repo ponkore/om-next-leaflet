@@ -93,6 +93,39 @@
             (channel-handler this (assoc data :tag tag))))
         (recur)))))
 
+(defn api--get-lines
+  [chan]
+  (util/send-request! :get "/api2/lines" nil chan))
+
+(defn api--get-stations
+  [chan line-no]
+  (util/send-request! :get (str "/api2/lines/" line-no "/stations") nil chan))
+
+(defui TestButton
+  Object
+  (render [this]
+    (let [{:keys [event-chan input-node]} (om/props this)]
+      (html
+       [:button {:on-click (fn [e]
+                             (let [new-title (.-value input-node)]
+                               (put! event-chan {:result :success :event-id :app/on-click :data new-title})))}
+        "update"]))))
+
+(def button-fn (om/factory TestButton))
+
+(defui TestInput
+  Object
+  (render [this]
+    (let [{:keys [ref title event-chan]} (om/props this)]
+      (html
+       [:input {:ref ref
+                :value (if (nil? title) "" title)
+                :on-change (fn [e]
+                             (let [new-title (-> e .-target .-value)]
+                               (put! event-chan {:result :success :event-id :app/update-title :data new-title})))}]))))
+
+(def input-fn (om/factory TestInput))
+
 (defui Root
   static om/IQuery
   (query [this]
@@ -108,9 +141,11 @@
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize
-      (util/send-request! :get "/api2/lines" nil (:leaflet/lines channels))
-      (util/send-request! :get "/api2/lines/24/stations" nil (:leaflet/stations channels))
-      (om/update-state! this assoc :channels channels)))
+      (api--get-lines (:leaflet/lines channels))
+      (api--get-stations (:leaflet/stations channels) 24)
+      (om/update-state! this assoc
+                        :channels channels
+                        :input-node (dom/node this "title"))))
   (componentWillUnmount [this]
     (debug "will-unmount"))
   (render [this]
@@ -121,15 +156,8 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         [:input {:ref "title"
-                  :value (if (nil? title) "" title)
-                  :on-change (fn [e]
-                               (let [new-title (-> e .-target .-value)]
-                                 (put! event-chan {:result :success :event-id :app/update-title :data new-title})))}]
-         [:button {:on-click (fn [e]
-                               (let [new-title (.-value (dom/node this "title"))]
-                                 (put! event-chan {:result :success :event-id :app/on-click :data new-title})))}
-          "update"]
+         (input-fn {:ref "title" :title title :event-chan event-chan})
+         (button-fn {:event-chan event-chan :input-node (-> this om/get-state :input-node)})
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
         (leaflet-map-fn {:mapid "map"
