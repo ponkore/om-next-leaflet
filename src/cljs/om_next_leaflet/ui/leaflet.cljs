@@ -1,5 +1,6 @@
-(ns om-next-leaflet.leaflet
+(ns om-next-leaflet.ui.leaflet
   (:require [om.next :as om :refer-macros [defui]]
+            [om.dom :as dom]
             [taoensso.timbre :refer-macros [log trace debug info warn error fatal report]]
             [cljs.core.async :refer [put!]]
             [sablono.core :as html :refer-macros [html]]

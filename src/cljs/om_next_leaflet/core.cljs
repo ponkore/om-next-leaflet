@@ -6,8 +6,10 @@
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.parser :as parser]
-            [om-next-leaflet.util :as util]
-            [om-next-leaflet.leaflet :as leaflet]))
+            [om-next-leaflet.api :as api]
+            [om-next-leaflet.ui.leaflet :as leaflet]
+            [om-next-leaflet.ui.input :as input]
+            [om-next-leaflet.ui.button :as button]))
 
 (enable-console-print!)
 
@@ -93,38 +95,8 @@
             (channel-handler this (assoc data :tag tag))))
         (recur)))))
 
-(defn api--get-lines
-  [chan]
-  (util/send-request! :get "/api2/lines" nil chan))
-
-(defn api--get-stations
-  [chan line-no]
-  (util/send-request! :get (str "/api2/lines/" line-no "/stations") nil chan))
-
-(defui TestButton
-  Object
-  (render [this]
-    (let [{:keys [event-chan input-node]} (om/props this)]
-      (html
-       [:button {:on-click (fn [e]
-                             (let [new-title (.-value input-node)]
-                               (put! event-chan {:result :success :event-id :app/on-click :data new-title})))}
-        "update"]))))
-
-(def button-fn (om/factory TestButton))
-
-(defui TestInput
-  Object
-  (render [this]
-    (let [{:keys [ref title event-chan]} (om/props this)]
-      (html
-       [:input {:ref ref
-                :value (if (nil? title) "" title)
-                :on-change (fn [e]
-                             (let [new-title (-> e .-target .-value)]
-                               (put! event-chan {:result :success :event-id :app/update-title :data new-title})))}]))))
-
-(def input-fn (om/factory TestInput))
+(def button-fn (om/factory button/TestButton))
+(def input-fn (om/factory input/TestInput))
 
 (defui Root
   static om/IQuery
@@ -141,8 +113,8 @@
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize
-      (api--get-lines (:leaflet/lines channels))
-      (api--get-stations (:leaflet/stations channels) 24)
+      (api/get-lines (:leaflet/lines channels))
+      (api/get-stations (:leaflet/stations channels) 24)
       (om/update-state! this assoc
                         :channels channels
                         :input-node (dom/node this "title"))))
