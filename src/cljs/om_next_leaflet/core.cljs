@@ -105,7 +105,7 @@
       :app/mapstate])
   Object
   (componentDidMount [this]
-    (debug "did-mount")
+    (debug "did-mount@core")
     (let [channels {:leaflet/lines (chan)
                     :leaflet/stations (chan)
                     :leaflet/draw-event (chan)
@@ -119,7 +119,7 @@
                         :channels channels
                         :input-node (dom/node this "title"))))
   (componentWillUnmount [this]
-    (debug "will-unmount"))
+    (debug "will-unmount@core"))
   (render [this]
     (let [{:keys [app/title app/mapstate]} (om/props this)
           draw-event-chan (-> this om/get-state :channels :leaflet/draw-event)
@@ -137,10 +137,5 @@
                          :center [(:lat mapstate) (:lng mapstate)]
                          :zoom (:zoom mapstate)
                          :base-layers [osm-layer pale-layer std-layer]
-                         :event-handlers {:movestart        (partial change-mapstate this)
-                                          :move             (partial change-mapstate this)
-                                          :moveend          (partial change-mapstate this)
-                                          :zoomlevelschange (partial change-mapstate this)
-                                          :viewreset        (partial change-mapstate this)
-                                          :load             (partial change-mapstate this)}
+                         :event-handler (partial change-mapstate this)
                          :draw-event-chan draw-event-chan})]))))

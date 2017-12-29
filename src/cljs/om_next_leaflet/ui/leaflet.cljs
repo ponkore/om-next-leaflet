@@ -95,7 +95,7 @@
     (debug "will-mount @leaflet.cljs"))
   (componentDidMount [this]
     (debug "did-mount @leaflet.cljs")
-    (let [{:keys [mapid center zoom base-layers event-handlers]} (om/props this)
+    (let [{:keys [mapid center zoom base-layers event-handler]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
           stations-layer (.addTo (js/L.FeatureGroup.) leaflet-map)
@@ -116,13 +116,8 @@
                    (js/L.Control.Draw. (clj->js {:edit { :featureGroup drawn-items }
                                                  :draw { }})))
       (.on leaflet-map "draw:created" (draw-created-fn this))
-      ;; (.on leaflet-map "draw:edited" (fn [e] (let [layers (.-layers e)] )))
-      ;; event-handlers expected:
-      ;;   movestart, move, moveend, zoomlevelschange, viewreset, load
-      (doseq [k (keys event-handlers)
-              :let [callback (get event-handlers k)
-                    event-name (name k)]]
-        (.on leaflet-map event-name (fn [e] (callback e leaflet-map))))
+      (doseq [event-name ["movestart" "move" "moveend" "zoomlevelschange" "viewreset" "load"]]
+        (.on leaflet-map event-name (fn [e] (event-handler e leaflet-map))))
       (om/update-state! this assoc
                         :mapobj leaflet-map
                         :drawn-items drawn-items
