@@ -118,9 +118,11 @@
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize (calculate initial map's bounds, and get lines/stations in bounds)
-      (let [bounds (leaflet-bounds this)]
-        (api/get-lines (:leaflet/lines channels) bounds)
-        (api/get-stations (:leaflet/stations channels) bounds))
+      (let [{:keys [app/mapstate]} (om/props this)
+            zoom (:zoom mapstate)
+            bounds (leaflet-bounds this)]
+        (api/get-lines (:leaflet/lines channels) bounds zoom)
+        (api/get-stations (:leaflet/stations channels) bounds zoom))
       (om/update-state! this assoc
                         :channels channels
                         :input-node (dom/node this "title"))))
