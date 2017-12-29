@@ -98,6 +98,11 @@
 (def button-fn (om/factory button/TestButton))
 (def input-fn (om/factory input/TestInput))
 
+(defn leaflet-bounds
+  [this]
+  (let [leaflet-map (-> (om/react-ref this :leaflet) om/get-state :mapobj)]
+    (-> leaflet-map .getBounds leaflet/bounds->clj)))
+
 (defui Root
   static om/IQuery
   (query [this]
@@ -112,9 +117,10 @@
                     :app/events (chan)}]
       ;; watch channels
       (main-channel-loop this channels)
-      ;; initialize
-      (api/get-lines (:leaflet/lines channels))
-      (api/get-stations (:leaflet/stations channels) 24)
+      ;; initialize (calculate initial map's bounds, and get lines/stations in bounds)
+      (let [bounds (leaflet-bounds this)]
+        (api/get-lines (:leaflet/lines channels) bounds)
+        (api/get-stations (:leaflet/stations channels) bounds))
       (om/update-state! this assoc
                         :channels channels
                         :input-node (dom/node this "title"))))

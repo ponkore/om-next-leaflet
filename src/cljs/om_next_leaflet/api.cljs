@@ -4,9 +4,10 @@
             [om-next-leaflet.util :as util]))
 
 (defn get-lines
-  [chan]
+  [chan bounds]
   (util/send-request! :get "/api2/lines" nil chan))
 
 (defn get-stations
-  [chan line-no]
-  (util/send-request! :get (str "/api2/lines/" line-no "/stations") nil chan))
+  [chan bounds]
+  (let [line-no 24]
+    (util/send-request! :get (str "/api2/lines/" line-no "/stations") nil chan)))
