@@ -16,7 +16,7 @@
                  [bk/ring-gzip "0.2.1"]
                  [radicalzephyr/ring.middleware.logger "0.6.0"]
                  [com.taoensso/timbre "4.10.0"]
-                 [compojure "1.6.0"]
+                 [bidi "2.1.2"]
                  [environ "1.1.0"]
                  [com.stuartsierra/component "0.3.2"]
                  [org.danielsz/system "0.4.1"]
