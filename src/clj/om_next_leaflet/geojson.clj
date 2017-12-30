@@ -59,24 +59,24 @@
 (def ^{:private true}
   lines
   "全路線を読み取った Collection (delayed)。"
-  (delay (read-all-data "JRW-railroad.geojson" json->line)))
+  (read-all-data "JRW-railroad.geojson" json->line))
 
 (def ^{:private true}
   stations
   "全駅を読み取った Collection (delayed)。"
-  (delay (read-all-data "JRW-stations.geojson" json->station)))
+  (read-all-data "JRW-stations.geojson" json->station))
 
 (defn get-lines
   "条件に適合する路線情報を返す。"
   ([] (get-lines identity))
   ([filter-fn]
-     (filter filter-fn @lines)))
+     (filter filter-fn lines)))
 
 (defn get-stations
   "条件に適合する駅を返す。"
   ([] (get-stations identity))
   ([filter-fn]
-     (filter filter-fn @stations)))
+     (filter filter-fn stations)))
 
 (defn distance
   "２つの点の間の距離(km)を求める。
@@ -124,7 +124,7 @@ see http://www.kiteretsu-so.com/archives/1183 "
 
 (defn- line-name->line-id
   [line-name]
-  (->> @lines
+  (->> lines
        (filter #(= (:line-name %) line-name))
        first
        :id))
