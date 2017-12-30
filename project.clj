@@ -30,6 +30,7 @@
   :plugins [[lein-cljsbuild "1.1.6"]
             [lein-environ "1.1.0"]
             [lein-sassc "0.10.4"]
+            ;; [lein-less "1.7.5"] ??
             [lein-auto "0.1.3"]]
 
   :min-lein-version "2.6.1"
@@ -38,11 +39,11 @@
 
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
+  :target-path "target/%s/"
+
   :test-paths ["test/clj" "test/cljc"]
 
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js"]
-
-  :uberjar-name "om-next-leaflet.jar"
 
   ;; Use `lein run` if you just want to start a HTTP server, without figwheel
   :main om-next-leaflet.application
@@ -75,9 +76,10 @@
                 :jar true
                 :compiler {:main om-next-leaflet.system
                            :output-to "resources/public/js/compiled/om_next_leaflet.js"
-                           :output-dir "target"
-                           :source-map-timestamp true
-                           :optimizations :advanced
+                           :externs ["react/externs/react.js"] ;; ??
+                           :output-dir "target/uberjar" ;; ??
+                           ;; :source-map-timestamp true
+                           :optimizations :whitespace ;; :advanced
                            :pretty-print false}}]}
 
   ;; When running figwheel from nREPL, figwheel will read this configuration
@@ -131,6 +133,7 @@
 
              :uberjar
              {:source-paths ^:replace ["src/clj" "src/cljc"]
+              :uberjar-name "om-next-leaflet.jar"
               :prep-tasks ["compile"
                            ["cljsbuild" "once" "min"]]
               :hooks [leiningen.sassc]
