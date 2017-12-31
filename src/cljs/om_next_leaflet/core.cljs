@@ -109,12 +109,18 @@
     '[:app/title
       :app/mapstate])
   Object
-  (componentDidMount [this]
-    (debug "did-mount@core")
+  (componentWillMount [this]
+    (debug "will-mount@core")
     (let [channels {:leaflet/lines (chan)
                     :leaflet/stations (chan)
                     :leaflet/draw-event (chan)
                     :app/events (chan)}]
+      (om/update-state! this assoc
+                        :channels channels
+                        :input-node (dom/node this "title"))))
+  (componentDidMount [this]
+    (debug "did-mount@core")
+    (let [channels (-> this om/get-state :channels)]
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize (calculate initial map's bounds, and get lines/stations in bounds)
@@ -122,10 +128,7 @@
             zoom (:zoom mapstate)
             bounds (leaflet-bounds this)]
         (api/get-lines (:leaflet/lines channels) bounds zoom)
-        (api/get-stations (:leaflet/stations channels) bounds zoom))
-      (om/update-state! this assoc
-                        :channels channels
-                        :input-node (dom/node this "title"))))
+        (api/get-stations (:leaflet/stations channels) bounds zoom))))
   (componentWillUnmount [this]
     (debug "will-unmount@core"))
   (render [this]
