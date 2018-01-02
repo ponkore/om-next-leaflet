@@ -98,9 +98,6 @@
             (channel-handler this (assoc data :tag tag))))
         (recur)))))
 
-(def button-fn (om/factory button/TestButton))
-(def input-fn (om/factory input/TestInput))
-
 (defn leaflet-bounds
   [this]
   (let [leaflet-map (-> (om/react-ref this :leaflet) om/get-state :mapobj)]
@@ -139,11 +136,13 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         (input-fn {:on-input (fn [e]
-                                (let [value (-> e .-target .-value)]
-                                  (put! event-chan {:result :success :event-id :app/update-title :data value})))
-                    :default-value (-> this om/props :app/title)})
-         (button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))})
+         (input/input-fn {:on-input (fn [e]
+                                      (let [value (-> e .-target .-value)]
+                                        (put! event-chan {:result :success :event-id :app/update-title :data value})))
+                          :default-value (-> this om/props :app/title)
+                          :placeholder "input here"})
+         (button/button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))
+                            :text "Button"})
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
         (leaflet-map-fn {:mapid "map"
