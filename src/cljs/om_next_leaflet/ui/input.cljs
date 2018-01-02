@@ -30,6 +30,5 @@
                                       (reset! composing? false)
                                       (text-change-handler this e composing? old-val on-input))
                 :on-input (fn [e] (text-change-handler this e composing? old-val on-input))}
-          init-opts (dissoc init-opts :on-input)
-          opts (merge opts init-opts)]
+          opts (merge init-opts opts)]
       (html [:input opts]))))

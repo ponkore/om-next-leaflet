@@ -8,7 +8,5 @@
   Object
   (render [this]
     (let [{:keys [ref class on-click] :as init-opts} (om/props this)
-          opts {:on-click (fn [e] (on-click e))}
-          init-opts (dissoc init-opts :on-click)
-          opts (merge opts init-opts)]
+          opts (assoc init-opts :on-click (fn [e] (on-click e)))]
       (html [:button opts "update"]))))
