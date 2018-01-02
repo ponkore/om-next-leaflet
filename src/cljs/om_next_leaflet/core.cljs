@@ -82,7 +82,10 @@
   [this data]
   (let [{:keys [event-id data]} data]
     (debug "after alts! :app/events :event-id " event-id ", data=" data)
-    (om/transact! this `[(app/update-title {:new-title ~data})])))
+    (case event-id
+      :app/update-title (om/transact! this `[(app/update-title {:new-title ~data})])
+      :app/on-click (debug "on-click!!!" (-> this om/props :app/title))
+      :else (debug "else!!!"))))
 
 (defn main-channel-loop
   [this channels]
@@ -110,17 +113,14 @@
       :app/mapstate])
   Object
   (componentWillMount [this]
-    (debug "will-mount@core")
+    (debug "will-mount@core"))
+  (componentDidMount [this]
+    (debug "did-mount@core")
     (let [channels {:leaflet/lines (chan)
                     :leaflet/stations (chan)
                     :leaflet/draw-event (chan)
                     :app/events (chan)}]
-      (om/update-state! this assoc
-                        :channels channels
-                        :input-node (dom/node this "title"))))
-  (componentDidMount [this]
-    (debug "did-mount@core")
-    (let [channels (-> this om/get-state :channels)]
+      (om/update-state! this assoc :channels channels)
       ;; watch channels
       (main-channel-loop this channels)
       ;; initialize (calculate initial map's bounds, and get lines/stations in bounds)
@@ -139,8 +139,10 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         (input-fn {:ref "title" :title title :event-chan event-chan})
-         (button-fn {:event-chan event-chan :input-node (-> this om/get-state :input-node)})
+         (input-fn {:on-input (fn [e]
+                                (let [value (-> e .-target .-value)]
+                                  (put! event-chan {:result :success :event-id :app/update-title :data value})))})
+         (button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))})
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
         (leaflet-map-fn {:mapid "map"
