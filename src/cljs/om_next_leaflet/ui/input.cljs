@@ -4,6 +4,15 @@
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]))
 
+;; (schema
+;;  (s/optional-key :ref) s/Any
+;;  (s/optional-key :class) s/Str
+;;  (s/optional-key :deafult-value) s/Str
+;;  :on-composition-start s/Fn
+;;  :on-composition-end s/Fn
+;;  (s/optional-key :on-input) s/Fn
+;;  )
+
 (defn text-change-handler
   [this e composing? old-val on-input]
   (let [v (-> e .-target .-value)]
@@ -23,7 +32,7 @@
     (let [old-val (-> this om/get-state :old-val)]
       (reset! old-val "")))
   (render [this]
-    (let [{:keys [ref class on-input] :as init-opts} (om/props this)
+    (let [{:keys [ref class on-input default-value] :as init-opts} (om/props this)
           {:keys [composing? old-val]} (om/get-state this)
           opts {:on-composition-start (fn [e] (reset! composing? true))
                 :on-composition-end (fn [e]

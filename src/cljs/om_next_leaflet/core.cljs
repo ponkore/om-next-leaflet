@@ -141,7 +141,8 @@
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
          (input-fn {:on-input (fn [e]
                                 (let [value (-> e .-target .-value)]
-                                  (put! event-chan {:result :success :event-id :app/update-title :data value})))})
+                                  (put! event-chan {:result :success :event-id :app/update-title :data value})))
+                    :default-value (-> this om/props :app/title)})
          (button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))})
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
