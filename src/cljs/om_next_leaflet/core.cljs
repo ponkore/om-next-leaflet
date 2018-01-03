@@ -17,9 +17,10 @@
 
 (defonce app-state (atom {:app/title ""
                           :app/line-names []
+                          :app/current-line "24"
                           :app/mapstate (map->MapState {:lat 34.6964898
                                                         :lng 135.4930235
-                                                        :zoom 12})}))
+                                                        :zoom 13})}))
 
 (def parser (om/parser {:read parser/read :mutate parser/mutate}))
 
@@ -89,6 +90,7 @@
     (case event-id
       :app/update-title (om/transact! this `[(app/update-title {:new-title ~data})])
       :app/on-click (debug "on-click!!!" (-> this om/props :app/title))
+      :app/on-select-line (om/transact! this `[(app/update-current-line {:new-line ~data})])
       :else (debug "else!!!"))))
 
 (defn main-channel-loop
@@ -112,6 +114,7 @@
   (query [this]
     '[:app/title
       :app/line-names
+      :app/current-line
       :app/mapstate])
   Object
   (componentWillMount [this]
@@ -136,7 +139,10 @@
   (componentWillUnmount [this]
     (debug "will-unmount@core"))
   (render [this]
-    (let [{:keys [app/title app/mapstate app/line-names]} (om/props this)
+    (let [{:keys [app/title
+                  app/line-names
+                  app/current-line
+                  app/mapstate]} (om/props this)
           draw-event-chan (-> this om/get-state :channels :leaflet/draw-event)
           event-chan (-> this om/get-state :channels :app/events)]
       (html
@@ -150,6 +156,12 @@
                           :placeholder "input here"})
          (button/button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))
                             :title "Button"})
+         [:div
+          `[:select {:default-value ~current-line
+                     :on-change ~(fn [e]
+                                   (let [data (-> e .-target .-value)]
+                                     (put! event-chan {:result :success :event-id :app/on-select-line :data data})))}
+            ~@(mapv (fn [[id name]] [:option {:value id} (str id " " name)]) line-names)]]
          [:div
           [:table {:id "lines-list"}
            [:thead

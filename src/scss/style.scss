@@ -35,6 +35,8 @@ h1 {
   color: #333;
 }
 #lines-list {
+  border-spacing: 0px;
+  border-collapse: collapse;
   thead {
     display: block;
     th:nth-child(1) {
@@ -42,6 +44,9 @@ h1 {
     }
     th:nth-child(2) {
       width: 120px;
+    }
+    th {
+      border: 1px solid #666;
     }
   }
   tbody {
@@ -56,6 +61,9 @@ h1 {
     }
     tr:nth-child(2n+1) {
       background-color: #eee;
+    }
+    td {
+      border: 1px solid #666;
     }
   }
 }
