@@ -9,7 +9,7 @@
             [figwheel-sidecar.repl-api :as figwheel]
             [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
             [taoensso.timbre.appenders.core :as appenders]
-            ;;[om-next-leaflet.components.shell-component :refer [shell-component]]
+            [om-next-leaflet.components.shell-component :refer [shell-component]]
             [om-next-leaflet.config :refer [config]]))
 
 (defn dev-system []
@@ -17,8 +17,7 @@
   (assoc (om-next-leaflet.application/app-system (config))
     :figwheel-system (fw-sys/figwheel-system (fw-config/fetch-config))
     :css-watcher (fw-sys/css-watcher {:watch-paths ["resources/public/css"]})
-    ;;:sass (shell-component "lein" "auto" "sassc" "once")
-    ))
+    :sass (shell-component "lein" "auto" "sassc" "once")))
 
 (set-refresh-dirs "src" "dev")
 (reloaded.repl/set-init! #(dev-system))

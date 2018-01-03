@@ -7,7 +7,7 @@
   (start [this]
     (when-not (:running this)
       (println "Shell command:" (str/join " " command))
-      #_(future (apply clojure.java.shell/sh command)))
+      (future (apply clojure.java.shell/sh command)))
     (assoc this :running true))
   (stop [this]
     (when (:running this)

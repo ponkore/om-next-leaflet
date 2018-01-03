@@ -23,13 +23,31 @@ h1 {
   top: 18px;
   left: 55px;
   width: 200px;
-  bottom: 140px;
+  bottom: 20px;
   background: #ffffff;
   font-size: 12px;
   box-shadow: 1px 1px 5px black;
   border-radius: 5px;
   padding: 6px 10px 6px 6px;
   color: #333; }
+
+#lines-list thead {
+  display: block; }
+  #lines-list thead th:nth-child(1) {
+    width: 50px; }
+  #lines-list thead th:nth-child(2) {
+    width: 120px; }
+
+#lines-list tbody {
+  display: block;
+  height: 150px;
+  overflow-y: scroll; }
+  #lines-list tbody td:nth-child(1) {
+    width: 50px; }
+  #lines-list tbody td:nth-child(2) {
+    width: 120px; }
+  #lines-list tbody tr:nth-child(2n+1) {
+    background-color: #eee; }
 
 html, body {
   height: 500px; }
