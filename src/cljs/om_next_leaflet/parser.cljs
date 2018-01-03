@@ -18,6 +18,11 @@
   {:value {:keys [:app/lines]}
    :action (fn [] (swap! state assoc :app/lines new-lines))})
 
+(defmethod mutate 'app/update-line-names
+  [{:keys [state]} _ {:keys [new-line-names]}]
+  {:value {:keys [:app/line-names]}
+   :action (fn [] (swap! state assoc :app/line-names new-line-names))})
+
 (defmulti read om/dispatch)
 
 (defmethod read :default ;; :app/mapstate, :app/title

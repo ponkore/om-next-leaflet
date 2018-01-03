@@ -24,6 +24,12 @@
    (->> (geojson/get-lines)
         (map (fn [{:keys [id line-name bounding-box geometry]}] [id line-name bounding-box geometry])))))
 
+(defn line-names-handler
+  [req]
+  (generate-response-json
+   (->> (geojson/get-lines)
+        (map (fn [{:keys [id line-name]}] [id line-name])))))
+
 (defn stations-handler
   [req]
   (generate-response-json
@@ -33,6 +39,7 @@
                  "index.html" {:get index-handler}
                  "api2/lines" {"" {:get lines-handler}
                                ["/" [#"\d+" :line-id]] {"/stations" {:get stations-handler}}}
+                 "api2/line-names" {:get line-names-handler}
                  "css" {:get (resources {:prefix "public/css/"})}
                  "js" {:get (resources {:prefix "public/js/"})}}])
 

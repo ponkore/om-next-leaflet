@@ -11,3 +11,7 @@
   [chan bounds zoom]
   (let [line-no 24]
     (util/send-request! :get (str "/api2/lines/" line-no "/stations") nil chan)))
+
+(defn get-line-names
+  [chan]
+  (util/send-request! :get "/api2/line-names" nil chan))
