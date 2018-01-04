@@ -51,18 +51,17 @@
 
 (defn save-object-handler
   [req]
-  (let [{:keys [params]} req
-        body (:body req)]
-    (debug "save-object-handler: req=" req, "body=" body)
+  (let [{:keys [body]} req]
+    (debug "save-object-handler: body=" body)
     (generate-response-json
-     {}))) ;; TODO
+     {}))) ;; TODO: return object id
 
 (defn get-objects-handler
   [req]
   (let [{:keys [params]} req]
     (debug "get-objects-handler: params=" params)
     (generate-response-json
-     {}))) ;; TODO
+     {}))) ;; TODO: return stored objects
 
 (def route ["/" {"" {:get index-handler}
                  "index.html" {:get index-handler}

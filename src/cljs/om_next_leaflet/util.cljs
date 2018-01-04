@@ -20,8 +20,7 @@
     :error (let [_ 1]
              (debug "handler error" (-> e .-target .getLastError))
              (put! chan {:result k :event e :error (-> e .-target .getLastError)}))
-    :else (put! chan {:result k :event e})
-    ))
+    :else (put! chan {:result k :event e})))
 
 (defn send-request!
   [method url data chan]
@@ -34,6 +33,8 @@
     (events/listen xhrio EventType.COMPLETE (fn [e] (handler xhrio :complete e chan)))
     (events/listen xhrio EventType.ABORT (fn [e] (handler xhrio :abort e chan)))
     (events/listen xhrio EventType.TIMEOUT (fn [e] (handler xhrio :timeout e chan)))
-    (debug "send-request! url=" url ", data=" data)
-    ;; TODO create envelope `data` for xhrio
-    (.send xhrio url method nil #js {"Content-type" "application/json"})))
+    ;; when `data` exists, create send string for xhrio
+    (if data
+      (let [send-data (.stringify js/JSON (clj->js data))]
+        (.send xhrio url method send-data #js {"Content-type" "application/json"}))
+      (.send xhrio url method nil #js {"Content-type" "application/json"}))))
