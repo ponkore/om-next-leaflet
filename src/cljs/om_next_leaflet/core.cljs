@@ -17,6 +17,7 @@
 
 (defonce app-state (atom {:app/title ""
                           :app/line-names []
+                          :app/stations []
                           :app/current-line "24"
                           :app/mapstate (map->MapState {:lat 34.6964898
                                                         :lng 135.4930235
@@ -71,6 +72,7 @@
 (defmethod channel-handler :leaflet/stations
   [this data]
   (let [leaflet-obj (om/react-ref this :leaflet)]
+    (om/transact! this `[(app/update-stations {:new-stations ~(:data data)})])
     (leaflet/init-station-markers leaflet-obj (:data data))))
 
 (defmethod channel-handler :leaflet/line-names
@@ -90,7 +92,9 @@
     (case event-id
       :app/update-title (om/transact! this `[(app/update-title {:new-title ~data})])
       :app/on-click (debug "on-click!!!" (-> this om/props :app/title))
-      :app/on-select-line (om/transact! this `[(app/update-current-line {:new-line ~data})])
+      :app/on-select-line (let [chan (-> this om/get-state :channels :leaflet/stations)]
+                            (om/transact! this `[(app/update-current-line {:new-line ~data})])
+                            (api/get-stations chan data))
       :else (debug "else!!!"))))
 
 (defn main-channel-loop
@@ -114,6 +118,7 @@
   (query [this]
     '[:app/title
       :app/line-names
+      :app/stations
       :app/current-line
       :app/mapstate])
   Object
@@ -125,7 +130,8 @@
                     :leaflet/stations (chan)
                     :leaflet/line-names (chan)
                     :leaflet/draw-event (chan)
-                    :app/events (chan)}]
+                    :app/events (chan)}
+          {:keys [app/current-line]} (om/props this)]
       (om/update-state! this assoc :channels channels)
       ;; watch channels
       (main-channel-loop this channels)
@@ -134,13 +140,14 @@
             zoom (:zoom mapstate)
             bounds (leaflet-bounds this)]
         (api/get-lines (:leaflet/lines channels) bounds zoom)
-        (api/get-stations (:leaflet/stations channels) bounds zoom)
+        (api/get-stations (:leaflet/stations channels) current-line)
         (api/get-line-names (:leaflet/line-names channels)))))
   (componentWillUnmount [this]
     (debug "will-unmount@core"))
   (render [this]
     (let [{:keys [app/title
                   app/line-names
+                  app/stations
                   app/current-line
                   app/mapstate]} (om/props this)
           draw-event-chan (-> this om/get-state :channels :leaflet/draw-event)
@@ -163,10 +170,10 @@
                                      (put! event-chan {:result :success :event-id :app/on-select-line :data data})))}
             ~@(mapv (fn [[id name]] [:option {:value id} (str id " " name)]) line-names)]]
          [:div
-          [:table {:id "lines-list"}
+          [:table#stations-list
            [:thead
-            [:tr [:th "線ID"] [:th "線名称"]]]
-           (vec (cons :tbody (mapv (fn [[id name]] [:tr [:td (str id)] [:td name]]) line-names)))]]
+            [:tr [:th "駅ID"] [:th "駅名称"]]]
+           (vec (cons :tbody (mapv (fn [{:keys [id station-name]}] [:tr [:td (str id)] [:td station-name]]) stations)))]]
          [:div
           [:p (str "zoom: " (:zoom mapstate))]]]
         (leaflet-map-fn {:mapid "map"

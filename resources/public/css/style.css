@@ -31,28 +31,28 @@ h1 {
   padding: 6px 10px 6px 6px;
   color: #333; }
 
-#lines-list {
+#stations-list {
   border-spacing: 0px;
   border-collapse: collapse; }
-  #lines-list thead {
+  #stations-list thead {
     display: block; }
-    #lines-list thead th:nth-child(1) {
+    #stations-list thead th:nth-child(1) {
       width: 50px; }
-    #lines-list thead th:nth-child(2) {
+    #stations-list thead th:nth-child(2) {
       width: 120px; }
-    #lines-list thead th {
+    #stations-list thead th {
       border: 1px solid #666; }
-  #lines-list tbody {
+  #stations-list tbody {
     display: block;
     height: 150px;
     overflow-y: scroll; }
-    #lines-list tbody td:nth-child(1) {
+    #stations-list tbody td:nth-child(1) {
       width: 50px; }
-    #lines-list tbody td:nth-child(2) {
+    #stations-list tbody td:nth-child(2) {
       width: 120px; }
-    #lines-list tbody tr:nth-child(2n+1) {
+    #stations-list tbody tr:nth-child(2n+1) {
       background-color: #eee; }
-    #lines-list tbody td {
+    #stations-list tbody td {
       border: 1px solid #666; }
 
 html, body {

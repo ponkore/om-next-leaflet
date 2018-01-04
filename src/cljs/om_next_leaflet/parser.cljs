@@ -28,6 +28,11 @@
   {:value {:keys [:app/current-line]}
    :action (fn [] (swap! state assoc :app/current-line new-line))})
 
+(defmethod mutate 'app/update-stations
+  [{:keys [state]} _ {:keys [new-stations]}]
+  {:value {:keys [:app/stations]}
+   :action (fn [] (swap! state assoc :app/stations new-stations))})
+
 (defmulti read om/dispatch)
 
 (defmethod read :default ;; :app/mapstate, :app/title
