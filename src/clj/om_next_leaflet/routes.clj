@@ -40,14 +40,29 @@
   (generate-response-json
    (let [{:keys [params]} req
          {:keys [zoom nwlat nwlng selat selng]} params]
-     "")))
+     {}))) ;; TODO
 
 (defn stations-in-bounds-handler
   [req]
   (generate-response-json
    (let [{:keys [params]} req
          {:keys [zoom nwlat nwlng selat selng]} params]
-     "")))
+     {}))) ;; TODO
+
+(defn save-object-handler
+  [req]
+  (let [{:keys [params]} req
+        body (:body req)]
+    (debug "save-object-handler: req=" req, "body=" body)
+    (generate-response-json
+     {}))) ;; TODO
+
+(defn get-objects-handler
+  [req]
+  (let [{:keys [params]} req]
+    (debug "get-objects-handler: params=" params)
+    (generate-response-json
+     {}))) ;; TODO
 
 (def route ["/" {"" {:get index-handler}
                  "index.html" {:get index-handler}
@@ -55,7 +70,9 @@
                                    ["/" [#"\d+" :line-id]] {"/stations" {:get stations-handler}}}
                           "line-names" {:get line-names-handler}
                           "lines-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] lines-in-bounds-handler}
-                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] stations-in-bounds-handler}}
+                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] stations-in-bounds-handler}
+                          "objects" {:get get-objects-handler}
+                          "object" {:post save-object-handler}}
                  "css" {:get (resources {:prefix "public/css/"})}
                  "js" {:get (resources {:prefix "public/js/"})}}])
 

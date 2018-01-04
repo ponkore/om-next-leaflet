@@ -12,6 +12,7 @@
                  [cheshire "5.8.0"]
                  [ring "1.6.3"]
                  [ring-transit "0.1.6"]
+                 [ring/ring-json "0.4.0"]
                  [ring/ring-defaults "0.3.1"]
                  [bk/ring-gzip "0.2.1"]
                  [radicalzephyr/ring.middleware.logger "0.6.0"]
