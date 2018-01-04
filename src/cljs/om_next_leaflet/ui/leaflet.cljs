@@ -49,32 +49,52 @@
         opts (merge {} opts)]
     (.polyline js/L (clj->js geom) (clj->js opts))))
 
+(defn create-marker*
+  [target-layer line-name station-name geometry]
+  (let [[lng lat] geometry
+        marker (apply create-marker lat lng (:marker-default-style custom-styles))]
+    (doto marker
+      (.bindPopup (str "<b>" line-name "</b><br>" station-name))
+      (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
+      (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles)))))
+      )
+    marker))
+
 (defn init-station-markers
   [leaflet-obj stations]
-  (let [target-layer (-> leaflet-obj om/get-state :stations-layer)]
-    (doseq [{:keys [id station-name line-name geometry]} stations]
-      (let [[lng lat] geometry
-            marker (apply create-marker lat lng (:marker-default-style custom-styles))]
-        (doto marker
-          (.bindPopup (str "<b>" line-name "</b><br>" station-name))
-          (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
-          (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles)))))
-          (.addTo target-layer))))))
+  (let [target-layer (-> leaflet-obj om/get-state :stations-layer)
+        markers (map (fn [{:keys [id station-name line-name geometry]}]
+                       (create-marker* target-layer line-name station-name geometry))
+                     stations)]
+    (when-let [old-markers (-> leaflet-obj om/get-state :markers)]
+      (doseq [marker old-markers]
+        (.removeFrom marker target-layer)))
+    (doseq [m markers]
+      (.addTo m target-layer))
+    (om/update-state! leaflet-obj assoc :markers (doall markers))))
+
+(defn create-polyline*
+  [target-layer id name geometry]
+  (let [polyline (apply create-polyline geometry (:polyline-default-style custom-styles))]
+    (doto polyline
+      (.bindTooltip (str "<b>" name "[" id "]</b>"))
+      (.on "mouseover" (fn [e]
+                         (.setStyle polyline (clj->js (:mouseover-style custom-styles)))
+                         (.openTooltip polyline (.-latlng e))))
+      (.on "mouseout" (fn [e]
+                        (.setStyle polyline (clj->js (:default-style custom-styles)))
+                        (.closeTooltip polyline))))
+    polyline))
 
 (defn init-polylines
   [leaflet-obj lines]
-  (let [target-layer (-> leaflet-obj om/get-state :lines-layer)]
-    (doseq [[id name bounding-box geometry] lines]
-      (let [polyline (apply create-polyline geometry (:polyline-default-style custom-styles))]
-        (doto polyline
-          (.bindTooltip (str "<b>" name "[" id "]</b>"))
-          (.on "mouseover" (fn [e]
-                             (.setStyle polyline (clj->js (:mouseover-style custom-styles)))
-                             (.openTooltip polyline (.-latlng e))))
-          (.on "mouseout" (fn [e]
-                            (.setStyle polyline (clj->js (:default-style custom-styles)))
-                            (.closeTooltip polyline)))
-          (.addTo target-layer))))))
+  (let [target-layer (-> leaflet-obj om/get-state :lines-layer)
+        polylines (map (fn [[id name bounding-box geometry]]
+                         (create-polyline* target-layer id name geometry))
+                       lines)]
+    (doseq [l polylines]
+      (.addTo l target-layer))
+    (om/update-state! leaflet-obj assoc :polylines (doall polylines))))
 
 (defn draw-created-fn
   [this]
