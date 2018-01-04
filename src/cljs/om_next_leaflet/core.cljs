@@ -83,7 +83,7 @@
 (defmethod channel-handler :leaflet/draw-event
   [this data]
   (let [leaflet-obj (om/react-ref this :leaflet)]
-    (debug "after alts! leaflet-created" data)))
+    (debug "after alts! leaflet-created. item=" (:item data))))
 
 (defmethod channel-handler :app/events
   [this data]
@@ -139,7 +139,7 @@
       (let [{:keys [app/mapstate]} (om/props this)
             zoom (:zoom mapstate)
             bounds (leaflet-bounds this)]
-        (api/get-lines (:leaflet/lines channels) bounds zoom)
+        (api/get-lines (:leaflet/lines channels))
         (api/get-stations (:leaflet/stations channels) current-line)
         (api/get-line-names (:leaflet/line-names channels)))))
   (componentWillUnmount [this]
@@ -164,7 +164,7 @@
          (button/button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))
                             :title "Button"})
          [:div
-          `[:select {:default-value ~current-line
+          `[:select {:value ~current-line
                      :on-change ~(fn [e]
                                    (let [data (-> e .-target .-value)]
                                      (put! event-chan {:result :success :event-id :app/on-select-line :data data})))}

@@ -35,11 +35,27 @@
   (generate-response-json
    (geojson/get-stations (fn [m] (= (:line-id m) (Integer/parseInt (get-in req [:params :line-id])))))))
 
+(defn lines-in-bounds-handler
+  [req]
+  (generate-response-json
+   (let [{:keys [params]} req
+         {:keys [zoom nwlat nwlng selat selng]} params]
+     "")))
+
+(defn stations-in-bounds-handler
+  [req]
+  (generate-response-json
+   (let [{:keys [params]} req
+         {:keys [zoom nwlat nwlng selat selng]} params]
+     "")))
+
 (def route ["/" {"" {:get index-handler}
                  "index.html" {:get index-handler}
-                 "api2/lines" {"" {:get lines-handler}
-                               ["/" [#"\d+" :line-id]] {"/stations" {:get stations-handler}}}
-                 "api2/line-names" {:get line-names-handler}
+                 "api2/" {"lines" {"" {:get lines-handler}
+                                   ["/" [#"\d+" :line-id]] {"/stations" {:get stations-handler}}}
+                          "line-names" {:get line-names-handler}
+                          "lines-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] lines-in-bounds-handler}
+                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] stations-in-bounds-handler}}
                  "css" {:get (resources {:prefix "public/css/"})}
                  "js" {:get (resources {:prefix "public/js/"})}}])
 

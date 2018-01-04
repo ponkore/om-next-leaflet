@@ -56,8 +56,7 @@
     (doto marker
       (.bindPopup (str "<b>" line-name "</b><br>" station-name))
       (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
-      (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles)))))
-      )
+      (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles))))))
     marker))
 
 (defn init-station-markers
@@ -102,12 +101,11 @@
     (let [layer (.-layer e)
           drawn-items (-> this om/get-state :drawn-items)
           draw-event-chan (-> this om/props :draw-event-chan)]
-      (.log js/console (.-target e))
       (.setStyle layer (clj->js (:default-style custom-styles)))
       (.on layer "mouseover" (fn [e] (.setStyle layer (clj->js (:mouseover-style custom-styles)))))
       (.on layer "mouseout" (fn [e] (.setStyle layer (clj->js (:default-style custom-styles)))))
       (.addLayer drawn-items layer)
-      (put! draw-event-chan {:result :success :event e :drawn-items drawn-items}))))
+      (put! draw-event-chan {:result :success :event e :item (js->clj (.toGeoJSON layer))}))))
 
 (defui Leaflet
   Object
