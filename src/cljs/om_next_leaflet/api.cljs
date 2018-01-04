@@ -28,3 +28,7 @@
 (defn get-line-names
   [chan]
   (util/send-request! :get "/api2/line-names" nil chan))
+
+(defn save-object
+  [chan object]
+  (util/send-request! :post "/api2/object" object chan))

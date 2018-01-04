@@ -82,8 +82,14 @@
 
 (defmethod channel-handler :leaflet/draw-event
   [this data]
-  (let [leaflet-obj (om/react-ref this :leaflet)]
+  (let [chan (-> this om/get-state :channels :leaflet/objects)]
+    (api/save-object chan (:item data))
     (debug "after alts! leaflet-created. item=" (:item data))))
+
+(defmethod channel-handler :leaflet/objects
+  [this data]
+  (let [leaflet-obj (om/react-ref this :leaflet)]
+    (debug "after save object.")))
 
 (defmethod channel-handler :app/events
   [this data]
@@ -130,6 +136,7 @@
                     :leaflet/stations (chan)
                     :leaflet/line-names (chan)
                     :leaflet/draw-event (chan)
+                    :leaflet/objects (chan)
                     :app/events (chan)}
           {:keys [app/current-line]} (om/props this)]
       (om/update-state! this assoc :channels channels)

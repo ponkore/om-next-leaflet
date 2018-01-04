@@ -10,10 +10,18 @@
 
 (defn handler
   [xhrio k e chan]
-  (if (= k :success)
-    (let [data (js->clj (.getResponseJson xhrio) :keywordize-keys true)]
-      (put! chan {:result k :event e :data data}))
-    (put! chan {:result k :event e})))
+  (case k
+    :success (let [data (js->clj (.getResponseJson xhrio) :keywordize-keys true)]
+               (debug "handler success" (-> e .-target .getLastError))
+               (put! chan {:result k :event e :data data}))
+    :complete (let [_ 1]
+                (debug "handler complete" (-> e .-target .getLastError))
+                (put! chan {:result k :event e :error (-> e .-target .getLastError)}))
+    :error (let [_ 1]
+             (debug "handler error" (-> e .-target .getLastError))
+             (put! chan {:result k :event e :error (-> e .-target .getLastError)}))
+    :else (put! chan {:result k :event e})
+    ))
 
 (defn send-request!
   [method url data chan]
@@ -26,4 +34,6 @@
     (events/listen xhrio EventType.COMPLETE (fn [e] (handler xhrio :complete e chan)))
     (events/listen xhrio EventType.ABORT (fn [e] (handler xhrio :abort e chan)))
     (events/listen xhrio EventType.TIMEOUT (fn [e] (handler xhrio :timeout e chan)))
-    (.send xhrio url method data #js {"Content-type" "application/json"})))
+    (debug "send-request! url=" url ", data=" data)
+    ;; TODO create envelope `data` for xhrio
+    (.send xhrio url method nil #js {"Content-type" "application/json"})))
