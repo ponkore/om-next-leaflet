@@ -9,9 +9,12 @@
             [om-next-leaflet.api :as api]
             [om-next-leaflet.ui.leaflet :as leaflet]
             [om-next-leaflet.ui.input :as input]
-            [om-next-leaflet.ui.button :as button]))
+            [om-next-leaflet.ui.button :as button])
+  (:require-macros [om-next-leaflet.parser :refer [defstate]]))
 
 (enable-console-print!)
+
+;; state definition
 
 (defrecord MapState [lat lng zoom bounds])
 
@@ -99,7 +102,7 @@
       :app/update-title (om/transact! this `[(app/update-title {:new-title ~data})])
       :app/on-click (debug "on-click!!!" (-> this om/props :app/title))
       :app/on-select-line (let [chan (-> this om/get-state :channels :leaflet/stations)]
-                            (om/transact! this `[(app/update-current-line {:new-line ~data})])
+                            (om/transact! this `[(app/update-current-line {:new-current-line ~data})])
                             (api/get-stations chan data))
       :else (debug "else!!!"))))
 
