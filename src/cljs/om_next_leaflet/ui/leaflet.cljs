@@ -7,12 +7,12 @@
             [cljsjs.leaflet]
             [cljsjs.leaflet-draw]))
 
-(def custom-styles {:mouseover-style {:color "#ff0000" :weight 8 :opacity 0.7}
-                    :default-style {:color "#666666" :weight 6 :opacity 0.7}
-                    :polyline-default-style [:color "#666666" :weight 6 :opacity 0.7]
-                    :marker-default-style [:radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1]
-                    :station-marker-default-style {:fillColor "#0000ff"}
-                    :station-marker-mouseover-style {:fillColor "#ff0000"}})
+(def custom-styles {:polyline-default {:color "#666666" :weight 6 :opacity 0.7}
+                    :polyline-selected {:color "#0000dd" :weight 6 :opacity 0.7}
+                    :polyline-mouseover {:color "#ff0000" :weight 6 :opacity 0.7}
+                    :marker-default {:radius 6 :fillColor "#0000ff" :fillOpacity 1.0 :weight 1}
+                    :station-marker-default {:fillColor "#0000ff"}
+                    :station-marker-mouseover {:fillColor "#ff0000"}})
 
 (defn create-tilelayer
   [title url attribution & {:keys [minZoom maxZoom] :as opts}]
@@ -34,66 +34,57 @@
   (.setView leaflet-map (.latLng js/L lat lng)))
 
 (defn create-marker
-  [lat lng & {:keys [radius] :as opts}]
-  (let [opts (merge {} opts)]
-    (.circleMarker js/L (.latLng js/L lat lng) (clj->js opts))))
-
-(defn create-circle
-  [lat lng radius & {:keys [] :as opts}]
-  (let [opts (merge {} opts)]
-    (.circle js/L (clj->js [lat lng]) radius opts)))
-
-(defn create-polyline
-  [geometry & {:keys [color weight] :as opts}]
-  (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
-        opts (merge {} opts)]
-    (.polyline js/L (clj->js geom) (clj->js opts))))
-
-(defn create-marker*
   [target-layer line-name station-name geometry]
   (let [[lng lat] geometry
-        marker (apply create-marker lat lng (:marker-default-style custom-styles))]
+        marker (.circleMarker js/L (.latLng js/L lat lng) (clj->js (:marker-default custom-styles)))]
     (doto marker
       (.bindPopup (str "<b>" line-name "</b><br>" station-name))
-      (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover-style custom-styles)))))
-      (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default-style custom-styles))))))
+      (.on "mouseover" (fn [e] (.setStyle marker (clj->js (:station-marker-mouseover custom-styles)))))
+      (.on "mouseout" (fn [e] (.setStyle marker (clj->js (:station-marker-default custom-styles))))))
     marker))
+
+(defn create-polyline
+  [target-layer id name geometry]
+  (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
+        ;; default-attr (if (= id current-line) (:polyline-selected custom-styles) (:polyline-default custom-styles))
+        default-attr (:polyline-default custom-styles)
+        polyline (.polyline js/L (clj->js geom) (clj->js default-attr))]
+    (doto polyline
+      (.bindTooltip (str "<b>" name "[" id "]</b>"))
+      (.on "mouseover" (fn [e]
+                         (.setStyle polyline (clj->js (:polyline-mouseover custom-styles)))
+                         (.openTooltip polyline (.-latlng e))))
+      (.on "mouseout" (fn [e]
+                        (.setStyle polyline (clj->js default-attr))
+                        (.closeTooltip polyline))))
+    polyline))
 
 (defn init-station-markers
   [leaflet-obj stations]
   (let [target-layer (-> leaflet-obj om/get-state :stations-layer)
         markers (map (fn [{:keys [id station-name line-name geometry]}]
-                       (create-marker* target-layer line-name station-name geometry))
+                       (create-marker target-layer line-name station-name geometry))
                      stations)]
     (when-let [old-markers (-> leaflet-obj om/get-state :markers)]
       (doseq [marker old-markers]
         (.removeFrom marker target-layer)))
     (doseq [m markers]
       (.addTo m target-layer))
-    (om/update-state! leaflet-obj assoc :markers (doall markers))))
-
-(defn create-polyline*
-  [target-layer id name geometry]
-  (let [polyline (apply create-polyline geometry (:polyline-default-style custom-styles))]
-    (doto polyline
-      (.bindTooltip (str "<b>" name "[" id "]</b>"))
-      (.on "mouseover" (fn [e]
-                         (.setStyle polyline (clj->js (:mouseover-style custom-styles)))
-                         (.openTooltip polyline (.-latlng e))))
-      (.on "mouseout" (fn [e]
-                        (.setStyle polyline (clj->js (:default-style custom-styles)))
-                        (.closeTooltip polyline))))
-    polyline))
+    (om/update-state! leaflet-obj assoc :markers markers)))
 
 (defn init-polylines
   [leaflet-obj lines]
   (let [target-layer (-> leaflet-obj om/get-state :lines-layer)
+        current-line (-> leaflet-obj om/props :current-line)
         polylines (map (fn [[id name bounding-box geometry]]
-                         (create-polyline* target-layer id name geometry))
+                         (create-polyline target-layer id name geometry))
                        lines)]
+    (when-let [old-lines (-> leaflet-obj om/get-state :polylines)]
+      (doseq [line old-lines]
+        (.removeFrom line target-layer)))
     (doseq [l polylines]
       (.addTo l target-layer))
-    (om/update-state! leaflet-obj assoc :polylines (doall polylines))))
+    (om/update-state! leaflet-obj assoc :polylines polylines)))
 
 (defn draw-created-fn
   [this]
@@ -101,9 +92,9 @@
     (let [layer (.-layer e)
           drawn-items (-> this om/get-state :drawn-items)
           draw-event-chan (-> this om/props :draw-event-chan)]
-      (.setStyle layer (clj->js (:default-style custom-styles)))
-      (.on layer "mouseover" (fn [e] (.setStyle layer (clj->js (:mouseover-style custom-styles)))))
-      (.on layer "mouseout" (fn [e] (.setStyle layer (clj->js (:default-style custom-styles)))))
+      (.setStyle layer (clj->js (:polyline-default custom-styles)))
+      (.on layer "mouseover" (fn [e] (.setStyle layer (clj->js (:polyline-mouseover custom-styles)))))
+      (.on layer "mouseout" (fn [e] (.setStyle layer (clj->js (:polyline-default custom-styles)))))
       (.addLayer drawn-items layer)
       (put! draw-event-chan {:result :success :event e :item (js->clj (.toGeoJSON layer))}))))
 
@@ -113,7 +104,7 @@
     (debug "will-mount @leaflet.cljs"))
   (componentDidMount [this]
     (debug "did-mount @leaflet.cljs")
-    (let [{:keys [mapid center zoom base-layers event-handler]} (om/props this)
+    (let [{:keys [mapid center zoom base-layers event-handler current-line]} (om/props this)
           leaflet-map (.map js/L mapid (clj->js {:center center :zoom zoom}))
           drawn-items (.addTo (js/L.FeatureGroup.) leaflet-map)
           stations-layer (.addTo (js/L.FeatureGroup.) leaflet-map)

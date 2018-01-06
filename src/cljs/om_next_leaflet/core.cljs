@@ -21,7 +21,7 @@
 (defonce app-state (atom {:app/title ""
                           :app/line-names []
                           :app/stations []
-                          :app/current-line "24"
+                          :app/current-line 24
                           :app/mapstate (map->MapState {:lat 34.6964898
                                                         :lng 135.4930235
                                                         :zoom 13})}))
@@ -176,7 +176,7 @@
          [:div
           `[:select {:value ~current-line
                      :on-change ~(fn [e]
-                                   (let [data (-> e .-target .-value)]
+                                   (let [data (-> e .-target .-value js/parseInt)]
                                      (put! event-chan {:result :success :event-id :app/on-select-line :data data})))}
             ~@(mapv (fn [[id name]] [:option {:value id} (str id " " name)]) line-names)]]
          [:div
@@ -192,4 +192,5 @@
                          :zoom (:zoom mapstate)
                          :base-layers [osm-layer pale-layer std-layer]
                          :event-handler (partial change-mapstate this)
-                         :draw-event-chan draw-event-chan})]))))
+                         :draw-event-chan draw-event-chan
+                         :current-line current-line})]))))
