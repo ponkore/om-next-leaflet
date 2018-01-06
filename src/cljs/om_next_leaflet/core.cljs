@@ -30,12 +30,12 @@
 (defmulti mutate om/dispatch)
 (defmulti read om/dispatch)
 
-(defstate title)
-(defstate mapstate)
-(defstate lines)
-(defstate line-names)
-(defstate current-line)
-(defstate stations)
+(defstate :app/title)
+(defstate :app/line-names)
+(defstate :app/stations)
+(defstate :app/mapstate)
+(defstate :app/current-line)
+(defstate :app/lines)
 
 (defmethod read :default ;; :app/mapstate, :app/title
   [{:keys [state] :as env} k params]
