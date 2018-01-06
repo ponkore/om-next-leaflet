@@ -65,15 +65,16 @@
 
 (def route ["/" {"" {:get index-handler}
                  "index.html" {:get index-handler}
-                 "api2/" {"lines" {"" {:get lines-handler}
-                                   ["/" [#"\d+" :line-id]] {"/stations" {:get stations-handler}}}
-                          "line-names" {:get line-names-handler}
-                          "lines-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] lines-in-bounds-handler}
-                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] stations-in-bounds-handler}
-                          "objects" {:get get-objects-handler}
-                          "object" {:post save-object-handler}}
                  "css" {:get (resources {:prefix "public/css/"})}
-                 "js" {:get (resources {:prefix "public/js/"})}}])
+                 "js" {:get (resources {:prefix "public/js/"})}
+                 "api2/" {"lines" {:get lines-handler}
+                          ["lines/" [#"\d+" :line-id] "/stations"] {:get stations-handler}
+                          "line-names" {:get line-names-handler}
+                          "lines-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get lines-in-bounds-handler}}
+                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get stations-in-bounds-handler}}
+                          "objects" {:get get-objects-handler}
+                          "object" {:post save-object-handler}
+                          }}])
 
 (defn home-routes
   [endpoint]
