@@ -118,9 +118,11 @@
     (case event-id
       :app/update-title (om/transact! this `[(app/update-title {:new-title ~data})])
       :app/on-click (debug "on-click!!!" (-> this om/props :app/title))
-      :app/on-select-line (let [chan (-> this om/get-state :channels :leaflet/stations)]
-                            (om/transact! this `[(app/update-current-line {:new-current-line ~data})])
-                            (api/get-stations chan data))
+      :app/on-select-line (let [channels (-> this om/get-state :channels)
+                                new-current-line data]
+                            (om/transact! this `[(app/update-current-line {:new-current-line ~new-current-line})])
+                            (api/get-lines (:leaflet/lines channels))
+                            (api/get-stations (:leaflet/stations channels) new-current-line))
       :else (debug "else!!!"))))
 
 (defn main-channel-loop

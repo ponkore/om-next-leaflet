@@ -44,10 +44,10 @@
     marker))
 
 (defn create-polyline
-  [target-layer id name geometry]
+  [target-layer id name geometry selected]
   (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
-        ;; default-attr (if (= id current-line) (:polyline-selected custom-styles) (:polyline-default custom-styles))
-        default-attr (:polyline-default custom-styles)
+        default-attr (if selected (:polyline-selected custom-styles) (:polyline-default custom-styles))
+        ;; default-attr (:polyline-default custom-styles)
         polyline (.polyline js/L (clj->js geom) (clj->js default-attr))]
     (doto polyline
       (.bindTooltip (str "<b>" name "[" id "]</b>"))
@@ -77,7 +77,7 @@
   (let [target-layer (-> leaflet-obj om/get-state :lines-layer)
         current-line (-> leaflet-obj om/props :current-line)
         polylines (map (fn [[id name bounding-box geometry]]
-                         (create-polyline target-layer id name geometry))
+                         (create-polyline target-layer id name geometry (= id current-line)))
                        lines)]
     (when-let [old-lines (-> leaflet-obj om/get-state :polylines)]
       (doseq [line old-lines]
