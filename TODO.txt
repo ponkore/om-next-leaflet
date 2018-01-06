@@ -1,3 +1,12 @@
+* route の整理(handler 関数のメタデータに route を埋め込む)
+* client の parser defmethod を書きやすくする (macro 化)
+* core 内の各種キーワードの namespace 命名を見直す(直感的にわかりにくい)
+* save 処理(とりあえずSpatiaLite に突っ込む)
+* 選択した線の色替え
+* UI 設計
+
+[DONE]
+* リリースビルド (clojure.java.shell で class not found exception ??? aot?)
 * ReST API化
   /api/v1/
     stations/
@@ -6,8 +15,3 @@
            stations/
  まずは /stations, /lines のサーバ側を実装してみる
  om.next の remote 側を廃止
-
-* 新規敷設の線と、既存の線とで色を変える
-
-* リリースビルド (clojure.java.shell で class not found exception ??? aot?)
-* UI 設計
