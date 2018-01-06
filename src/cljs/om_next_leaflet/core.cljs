@@ -5,12 +5,11 @@
             [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [sablono.core :as html :refer-macros [html]]
-            [om-next-leaflet.parser :as parser]
+            [om-next-leaflet.common :refer-macros [defstate]]
             [om-next-leaflet.api :as api]
             [om-next-leaflet.ui.leaflet :as leaflet]
             [om-next-leaflet.ui.input :as input]
-            [om-next-leaflet.ui.button :as button])
-  (:require-macros [om-next-leaflet.parser :refer [defstate]]))
+            [om-next-leaflet.ui.button :as button]))
 
 (enable-console-print!)
 
@@ -26,7 +25,25 @@
                                                         :lng 135.4930235
                                                         :zoom 13})}))
 
-(def parser (om/parser {:read parser/read :mutate parser/mutate}))
+;; parser definition
+
+(defmulti mutate om/dispatch)
+(defmulti read om/dispatch)
+
+(defstate title)
+(defstate mapstate)
+(defstate lines)
+(defstate line-names)
+(defstate current-line)
+(defstate stations)
+
+(defmethod read :default ;; :app/mapstate, :app/title
+  [{:keys [state] :as env} k params]
+  (if-let [v (get @state k)]
+    {:value v}
+    {}))
+
+(def parser (om/parser {:read read :mutate mutate}))
 
 (def reconciler (om/reconciler {:state app-state :parser parser}))
 
