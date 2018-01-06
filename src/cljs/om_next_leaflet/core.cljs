@@ -32,9 +32,8 @@
 (defstate :app/title)
 (defstate :app/line-names)
 (defstate :app/stations)
-(defstate :app/mapstate)
 (defstate :app/current-line)
-(defstate :app/lines)
+(defstate :app/mapstate)
 
 (defmethod read :default ;; :app/mapstate, :app/title
   [{:keys [state] :as env} k params]
@@ -133,11 +132,6 @@
             (channel-handler this (assoc data :tag tag))))
         (recur)))))
 
-(defn leaflet-bounds
-  [this]
-  (let [leaflet-map (-> (om/react-ref this :leaflet) om/get-state :mapobj)]
-    (-> leaflet-map .getBounds leaflet/bounds->clj)))
-
 (defui Root
   static om/IQuery
   (query [this]
@@ -164,7 +158,8 @@
       ;; initialize (calculate initial map's bounds, and get lines/stations in bounds)
       (let [{:keys [app/mapstate]} (om/props this)
             zoom (:zoom mapstate)
-            bounds (leaflet-bounds this)]
+            leaflet-map (-> (om/react-ref this :leaflet) om/get-state :mapobj)
+            bounds (leaflet/leaflet-bounds leaflet-map)]
         (api/get-lines (:leaflet/lines channels))
         (api/get-stations (:leaflet/stations channels) current-line)
         (api/get-line-names (:leaflet/line-names channels)))))

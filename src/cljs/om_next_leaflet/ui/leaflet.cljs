@@ -29,6 +29,10 @@
         se (-> bounds .getSouthEast latlng->clj)]
     {:north-west nw :south-east se}))
 
+(defn leaflet-bounds
+  [leaflet-map]
+  (-> leaflet-map .getBounds bounds->clj))
+
 (defn set-center
   [leaflet-map lat lng]
   (.setView leaflet-map (.latLng js/L lat lng)))
