@@ -36,5 +36,3 @@
                 :on-input (fn [e] (text-change-handler this e composing? old-val on-input))}
           opts (merge init-opts opts)]
       (html [:input opts]))))
-
-(def input-fn (om/factory TestInput))

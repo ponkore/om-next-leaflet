@@ -7,9 +7,8 @@
             [sablono.core :as html :refer-macros [html]]
             [om-next-leaflet.common :refer-macros [defstate]]
             [om-next-leaflet.api :as api]
-            [om-next-leaflet.ui.leaflet :as leaflet]
-            [om-next-leaflet.ui.input :as input]
-            [om-next-leaflet.ui.button :as button]))
+            [om-next-leaflet.ui :refer [leaflet-map-fn button-fn input-fn]]
+            [om-next-leaflet.ui.leaflet :as leaflet]))
 
 (enable-console-print!)
 
@@ -79,8 +78,6 @@
                                  :bounds (-> leaflet-map .getBounds leaflet/bounds->clj)})]
     (debug (str "[" event-type "]"))
     (om/transact! this `[(app/update-mapstate {:new-mapstate ~mapstate})])))
-
-(def leaflet-map-fn (om/factory leaflet/Leaflet))
 
 (defmulti channel-handler (fn [this data] (:tag data)))
 
@@ -185,13 +182,13 @@
        [:div
         [:div {:id "custom-control"
                :class "leaflet-control-layers leaflet-control-layers-expanded leaflet-control"}
-         (input/input-fn {:on-input (fn [e]
-                                      (let [value (-> e .-target .-value)]
-                                        (put! event-chan {:result :success :event-id :app/update-title :data value})))
-                          :default-value (-> this om/props :app/title)
-                          :placeholder "input here"})
-         (button/button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))
-                            :title "Button"})
+         (input-fn {:on-input (fn [e]
+                                (let [value (-> e .-target .-value)]
+                                  (put! event-chan {:result :success :event-id :app/update-title :data value})))
+                    :default-value (-> this om/props :app/title)
+                    :placeholder "input here"})
+         (button-fn {:on-click (fn [e] (put! event-chan {:result :success :event-id :app/on-click}))
+                     :title "Button"})
          [:div
           `[:select {:value ~current-line
                      :on-change ~(fn [e]

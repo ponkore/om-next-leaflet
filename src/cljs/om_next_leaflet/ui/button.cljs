@@ -14,5 +14,3 @@
     (let [{:keys [ref class on-click title] :as init-opts} (om/props this)
           opts (assoc init-opts :on-click (fn [e] (on-click e)))]
       (html [:button opts title]))))
-
-(def button-fn (om/factory TestButton))
