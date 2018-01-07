@@ -77,10 +77,12 @@
                 :jar true
                 :compiler {:main om-next-leaflet.system
                            :output-to "resources/public/js/compiled/om_next_leaflet.js"
-                           :externs ["react/externs/react.js"] ;; ??
+                           :externs ["react/externs/react.js" ;; ??
+                                     "resources/externs/leaflet.ext.js"
+                                     "resources/externs/leaflet-draw.ext.js"]
                            :output-dir "target/uberjar" ;; ??
                            ;; :source-map-timestamp true
-                           :optimizations :whitespace ;; :advanced
+                           :optimizations :advanced
                            :pretty-print false}}]}
 
   ;; When running figwheel from nREPL, figwheel will read this configuration

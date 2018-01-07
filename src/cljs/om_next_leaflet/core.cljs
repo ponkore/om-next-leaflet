@@ -129,6 +129,7 @@
       (let [[data chan-accepted] (alts! wait-channels)]
         (when (= (:result data) :success)
           (let [tag (v->k chan-accepted)]
+            (debug "main-channel-loop: dispatch tag=" tag)
             (channel-handler this (assoc data :tag tag))))
         (recur)))))
 

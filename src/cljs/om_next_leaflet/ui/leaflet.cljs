@@ -51,7 +51,6 @@
   [target-layer id name geometry selected]
   (let [geom (map (fn [[lng lat]] [lat lng]) geometry)
         default-attr (if selected (:polyline-selected custom-styles) (:polyline-default custom-styles))
-        ;; default-attr (:polyline-default custom-styles)
         polyline (.polyline js/L (clj->js geom) (clj->js default-attr))]
     (doto polyline
       (.bindTooltip (str "<b>" name "[" id "]</b>"))
