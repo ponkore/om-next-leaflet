@@ -5,8 +5,7 @@
             [ring.util.response :refer [response resource-response]]
             [taoensso.timbre :as timbre :refer [log trace debug info warn error fatal]]
             [cheshire.core :refer [generate-string]]
-            [om-next-leaflet.geojson :as geojson]
-            [om.next.server :as om]))
+            [om-next-leaflet.geojson :as geojson]))
 
 (defn index-handler
   [req]
@@ -70,8 +69,8 @@
                  "api2/" {"lines" {:get lines-handler}
                           ["lines/" [#"\d+" :line-id] "/stations"] {:get stations-handler}
                           "line-names" {:get line-names-handler}
-                          "lines-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get lines-in-bounds-handler}}
-                          "stations-in-bounds" {["/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get stations-in-bounds-handler}}
+                          ["lines-in-bounds/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get lines-in-bounds-handler}
+                          ["stations-in-bounds/" :zoom "/" :nwlat "," :nwlng "-" :selat "," :selng] {:get stations-in-bounds-handler}
                           "objects" {:get get-objects-handler}
                           "object" {:post save-object-handler}
                           }}])
